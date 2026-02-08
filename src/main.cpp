@@ -208,7 +208,7 @@ int main(){
     	glClear(GL_COLOR_BUFFER_BIT);
     	glClearColor(0.5f, 0.1f, 0.8f, 1.0f);
 
-		RenderText(text1Shader, "Diddy blud's work", 10.0f, 10.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		RenderText(text1Shader, "Diddy blud's work pt2", 10.0f, 10.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
     	debugInputs();
     	glfwSwapBuffers(window);

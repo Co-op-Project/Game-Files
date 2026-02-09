@@ -232,13 +232,6 @@ public:
 
 };
 
-class button {
-public:
-
-
-private:
-};
-
 class frameBuffer {
 public:
 
@@ -303,6 +296,108 @@ public:
     }
 private:
     unsigned int frameBufferPrivate, colorAttachment, depthAttachment, width, height;
+};
+
+class GUI {
+public:
+    std::string name;
+    float X, Y;
+    int width, height, borderWidth;
+    glm::vec3 backgroundColor, borderColor;
+    unsigned int VAO, VBO, EBO = 0;
+    float* vertices = 0;
+    unsigned int verticesAmount = 0;
+    unsigned int* indices = 0u;
+    unsigned int indicesAmount = 0;
+
+    GUI(){}
+
+    void setup(float x, float y, int width, int height, glm::vec3 backgroundColor, glm::vec3 borderColor){
+        X = x;
+        Y = y;
+        this->width = width;
+        this->height = height;
+        this->backgroundColor = backgroundColor;
+        this->borderColor = borderColor;
+        glGenVertexArrays(1, &this->VAO);
+        glGenBuffers(1, &this->VBO);
+        glGenBuffers(1, &this->EBO);
+        updateVertices();
+        updateBuffers();
+    }
+
+    void updateVertices(){
+        if (vertices != nullptr) {
+            delete[] vertices;
+            vertices = nullptr;
+        }
+        if (indices != nullptr) {
+            delete[] indices;
+            indices = nullptr;
+        }
+
+        std::vector<float> tempVertices;
+        tempVertices.push_back(normX(X));
+        tempVertices.push_back(normY(Y));
+
+        tempVertices.push_back(normX(X + width));
+        tempVertices.push_back(normY(Y));
+
+        tempVertices.push_back(normX(X + width));
+        tempVertices.push_back(normY(Y + height));
+
+        tempVertices.push_back(normX(X));
+        tempVertices.push_back(normY(Y + height));
+
+        indicesAmount = 6;
+        indices = new unsigned int[indicesAmount]; 
+        indices[0] = 0;
+        indices[1] = 1;
+        indices[2] = 2;
+        indices[3] = 2;
+        indices[4] = 3;
+        indices[5] = 0;
+
+        verticesAmount = tempVertices.size();
+        vertices = new float[verticesAmount];
+        for(int i = 0; i < verticesAmount; i++){
+            vertices[i] = tempVertices[i];
+        }
+    }
+
+    float normX(int xPixels){
+        return float(window_width) / float(xPixels - width / 2);
+    }
+
+    float normY(int yPixels){
+        return float(window_height) / float(yPixels - height / 2);
+    }
+
+    void updateBuffers(){
+        glBindVertexArray(this->VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+        glBufferData(GL_ARRAY_BUFFER, verticesAmount * sizeof(float), vertices, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesAmount * sizeof(unsigned int), this->indices, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+    }
+
+    ~GUI(){
+        if (vertices != nullptr) {
+            delete[] vertices;
+            vertices = nullptr;
+        }
+        if (indices != nullptr) {
+            delete[] indices;
+            indices = nullptr;
+        }
+        glDeleteVertexArrays(1, &this->VAO);
+        glDeleteBuffers(1, &this->VBO);
+        glDeleteBuffers(1, &this->EBO);
+    }
+
+private:
 };
 
 #endif

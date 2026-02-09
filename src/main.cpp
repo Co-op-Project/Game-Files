@@ -29,12 +29,12 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "inputHandler.cpp"
-#include "classes.h"
-
 double pi = 3.141592653589793;
 float deltaTime, lastTime = 0.0f;
 int window_width, window_height;
+
+#include "inputHandler.cpp"
+#include "classes.h"
 
 Input input;
 Debug debug;
@@ -46,7 +46,7 @@ Debug debug;
 if (pressed(BUTTON_0))	debug.showWireFrame = !debug.showWireFrame;\
 if (held(BUTTON_LEFT_CTRL) && held(BUTTON_LEFTSHIFT) && pressed(BUTTON_P)) {\
 	glfwSetWindowShouldClose(window, GLFW_TRUE);\
-	std::cout << "Window force closed";\
+	std::cout << "\nWindow force closed\n";\
 }\
 if (debug.nextFPScounter > debug.FPS) {\
 	debug.nextFPScounter = 0;\
@@ -195,6 +195,14 @@ int main(){
 
 	stbi_set_flip_vertically_on_load(true);
 
+	unsigned int guisAmount = 1;
+	GUI* guis;
+	guis = new GUI[1];
+	guis[0].setup(0.0f, 0.0f, 200, 200, glm::vec3(1.0f, 0.5f, 0.5f), glm::vec3(0.5f, 1.0f, 0.5f));
+	
+
+	Shader guiShader("../resources/shaders/guis.vert", "../resources/shaders/guis.frag");
+
     while (!glfwWindowShouldClose(window)) {
     	for (int i = 0; i < BUTTON_COUNT; i++) {
     	    input.buttons[i].is_changed = false;
@@ -206,14 +214,22 @@ int main(){
 
     	glfwPollEvents();
     	glClear(GL_COLOR_BUFFER_BIT);
-    	glClearColor(0.5f, 0.1f, 0.8f, 1.0f);
+    	glClearColor(0.2f, 0.2f, 0.27f, 1.0f);
 
-		RenderText(text1Shader, "Diddy blud's work pt2", 10.0f, 10.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		RenderText(text1Shader, "FPS: " + std::to_string(debug.FPS), 10.0f, window_height + 10.0f, 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
+		
+		guiShader.use();
+		for(int i = 0; i < guisAmount; i++){
+			glBindVertexArray(guis[i].VAO);
+			guiShader.setVec3("backgroundColor", guis[i].backgroundColor);
+			glDrawElements(GL_TRIANGLES, guis[i].indicesAmount, GL_FLOAT, 0);
+		}
 
     	debugInputs();
     	glfwSwapBuffers(window);
-	}	
+	}
 
+	delete[] guis;
     glfwTerminate();
 	return 0;
 }

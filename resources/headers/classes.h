@@ -299,102 +299,59 @@ private:
 };
 
 class GUI {
+    // Prevent accidental copying or moving (which would corrupt OpenGL resource management)
+    
 public:
     std::string name;
-    float X, Y;
-    int width, height, borderWidth;
+    float X, Y, width, height, borderWidth = 0.0f;
     glm::vec3 backgroundColor, borderColor;
-    unsigned int VAO, VBO, EBO = 0;
-    float* vertices = 0;
-    unsigned int verticesAmount = 0;
-    unsigned int* indices = 0u;
-    unsigned int indicesAmount = 0;
+    unsigned int VAO, VBO;
+    float vertices[12];
 
-    GUI(){}
-
-    void setup(float x, float y, int width, int height, glm::vec3 backgroundColor, glm::vec3 borderColor){
-        X = x;
-        Y = y;
-        this->width = width;
-        this->height = height;
-        this->backgroundColor = backgroundColor;
-        this->borderColor = borderColor;
+    GUI(){
         glGenVertexArrays(1, &this->VAO);
         glGenBuffers(1, &this->VBO);
-        glGenBuffers(1, &this->EBO);
+    }
+
+    void setup(float x, float y, float width, float height, glm::vec3 backgroundColor, glm::vec3 borderColor){
+        X = x;
+        Y = y;
+        this->width = width * 2.0f;
+        this->height = height * 2.0f;
+        this->backgroundColor = backgroundColor;
+        this->borderColor = borderColor;
         updateVertices();
         updateBuffers();
     }
 
     void updateVertices(){
-        if (vertices != nullptr) {
-            delete[] vertices;
-            vertices = nullptr;
-        }
-        if (indices != nullptr) {
-            delete[] indices;
-            indices = nullptr;
-        }
+        float x1 = X - width / 2.0f;
+        float y1 = Y - height / 2.0f;
+        float x2 = X + width / 2.0f;
+        float y2 = Y + height / 2.0f;
 
-        std::vector<float> tempVertices;
-        tempVertices.push_back(normX(X));
-        tempVertices.push_back(normY(Y));
+        vertices[0] = x1; vertices[1] = y1; // bottom-left
+        vertices[2] = x2; vertices[3] = y1; // bottom-right
+        vertices[4] = x2; vertices[5] = y2; // top-right
 
-        tempVertices.push_back(normX(X + width));
-        tempVertices.push_back(normY(Y));
-
-        tempVertices.push_back(normX(X + width));
-        tempVertices.push_back(normY(Y + height));
-
-        tempVertices.push_back(normX(X));
-        tempVertices.push_back(normY(Y + height));
-
-        indicesAmount = 6;
-        indices = new unsigned int[indicesAmount]; 
-        indices[0] = 0;
-        indices[1] = 1;
-        indices[2] = 2;
-        indices[3] = 2;
-        indices[4] = 3;
-        indices[5] = 0;
-
-        verticesAmount = tempVertices.size();
-        vertices = new float[verticesAmount];
-        for(int i = 0; i < verticesAmount; i++){
-            vertices[i] = tempVertices[i];
-        }
-    }
-
-    float normX(int xPixels){
-        return float(window_width) / float(xPixels - width / 2);
-    }
-
-    float normY(int yPixels){
-        return float(window_height) / float(yPixels - height / 2);
+        vertices[6] = x2; vertices[7] = y2; // top-right
+        vertices[8] = x1; vertices[9] = y2; // top-left
+        vertices[10] = x1; vertices[11] = y1; // bottom-left
     }
 
     void updateBuffers(){
         glBindVertexArray(this->VAO);
         glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-        glBufferData(GL_ARRAY_BUFFER, verticesAmount * sizeof(float), vertices, GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesAmount * sizeof(unsigned int), this->indices, GL_DYNAMIC_DRAW);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float), (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesAmount * sizeof(unsigned int), this->indices, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     }
 
     ~GUI(){
-        if (vertices != nullptr) {
-            delete[] vertices;
-            vertices = nullptr;
-        }
-        if (indices != nullptr) {
-            delete[] indices;
-            indices = nullptr;
-        }
         glDeleteVertexArrays(1, &this->VAO);
         glDeleteBuffers(1, &this->VBO);
-        glDeleteBuffers(1, &this->EBO);
     }
 
 private:

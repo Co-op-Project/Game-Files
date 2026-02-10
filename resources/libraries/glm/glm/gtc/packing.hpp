@@ -187,7 +187,7 @@ namespace glm
 	/// Then, each component is converted to a normalized floating-point value to generate the returned four-component vector.
 	///
 	/// The conversion for unpacked fixed-point value f to floating point is done as follows:
-	/// unpackUnormx4x16: f / 65535.0
+	/// unpackU4x16: f / 65535.0
 	///
 	/// The first component of the returned vector will be extracted from the least significant bits of the input;
 	/// the last component will be extracted from the most significant bits.

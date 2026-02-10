@@ -2110,7 +2110,7 @@ uint16 packUnorm3x5_1x1(vec4 const&amp; v) </dd></dl>
 
 <p>First, unpacks a single 64-bit unsigned integer p into four 16-bit unsigned integers. </p>
 <p>Then, each component is converted to a normalized floating-point value to generate the returned four-component vector.</p>
-<p>The conversion for unpacked fixed-point value f to floating point is done as follows: unpackUnormx4x16: f / 65535.0</p>
+<p>The conversion for unpacked fixed-point value f to floating point is done as follows: unpackU4x16: f / 65535.0</p>
 <p>The first component of the returned vector will be extracted from the least significant bits of the input; the last component will be extracted from the most significant bits.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="a00907.html">GLM_GTC_packing</a> </dd>
 <dd>

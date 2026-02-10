@@ -197,9 +197,9 @@ int main(){
 
 	unsigned int guisAmount = 1;
 	GUI* guis;
-	guis = new GUI[1];
-	guis[0].setup(0.0f, 0.0f, 200, 200, glm::vec3(1.0f, 0.5f, 0.5f), glm::vec3(0.5f, 1.0f, 0.5f));
-	
+	guis = new GUI[guisAmount];
+	guis[0].setup(0.0f, 0.0f, 0.5f, 0.5f, glm::vec3(1.0f, 0.8f, 0.5f), glm::vec3(0.5f, 1.0f, 0.5f));
+
 
 	Shader guiShader("../resources/shaders/guis.vert", "../resources/shaders/guis.frag");
 
@@ -216,14 +216,16 @@ int main(){
     	glClear(GL_COLOR_BUFFER_BIT);
     	glClearColor(0.2f, 0.2f, 0.27f, 1.0f);
 
-		RenderText(text1Shader, "FPS: " + std::to_string(debug.FPS), 10.0f, window_height + 10.0f, 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
-		
 		guiShader.use();
 		for(int i = 0; i < guisAmount; i++){
-			glBindVertexArray(guis[i].VAO);
-			guiShader.setVec3("backgroundColor", guis[i].backgroundColor);
-			glDrawElements(GL_TRIANGLES, guis[i].indicesAmount, GL_FLOAT, 0);
+		   glBindVertexArray(guis[i].VAO);
+		   guiShader.setVec3("backgroundColor", guis[i].backgroundColor);
+		   glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
+		
+		RenderText(text1Shader, "FPS: " + std::to_string(debug.FPS), 10.0f, window_height + 10.0f, 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
+		
+		
 
     	debugInputs();
     	glfwSwapBuffers(window);

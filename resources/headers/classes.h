@@ -302,24 +302,30 @@ class GUI {
     // Prevent accidental copying or moving (which would corrupt OpenGL resource management)
     
 public:
-    std::string name;
     float X, Y, width, height, borderWidth = 0.0f;
-    glm::vec3 backgroundColor, borderColor;
+    glm::vec3 backgroundColor;
     unsigned int VAO, VBO;
     float vertices[12];
+    std::vector<float> totalVertices;
+    int type = 0;
 
-    GUI(){
-        glGenVertexArrays(1, &this->VAO);
-        glGenBuffers(1, &this->VBO);
+    GUI(){}
+
+    GUI(float x, float y, float width, float height, glm::vec3 backgroundColor, int type){
+        setup(x, y, width, height, backgroundColor, type);
     }
 
-    void setup(float x, float y, float width, float height, glm::vec3 backgroundColor, glm::vec3 borderColor){
+    void setup(float x, float y, float width, float height, glm::vec3 backgroundColor, int type){
         X = x;
         Y = y;
         this->width = width * 2.0f;
         this->height = height * 2.0f;
         this->backgroundColor = backgroundColor;
-        this->borderColor = borderColor;
+        this->type = type;
+        if(type == 1){
+            glGenVertexArrays(1, &this->VAO);
+            glGenBuffers(1, &this->VBO);
+        }
         updateVertices();
         updateBuffers();
     }
@@ -337,6 +343,19 @@ public:
         vertices[6] = x2; vertices[7] = y2; // top-right
         vertices[8] = x1; vertices[9] = y2; // top-left
         vertices[10] = x1; vertices[11] = y1; // bottom-left
+        if(type == 1){
+            if(totalVertices.size() == 0){
+                for(int i = 0; i < 12; i++){
+                    totalVertices.push_back(vertices[i]);
+                }
+            }else{
+                for(int i = 0; i < 12; i++){
+                    totalVertices[i] = vertices[i];
+                }
+            }
+        }else{
+
+        }
     }
 
     void updateBuffers(){
@@ -354,6 +373,16 @@ public:
         glDeleteBuffers(1, &this->VBO);
     }
 
+private:
+};
+
+class button : GUI {
+public:
+GUI &parentGUI;
+
+    button(GUI &parent){
+        parentGUI = parent;
+    }
 private:
 };
 

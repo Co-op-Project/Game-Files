@@ -198,7 +198,7 @@ int main(){
 	unsigned int guisAmount = 1;
 	GUI* guis;
 	guis = new GUI[guisAmount];
-	guis[0].setup(0.0f, 0.0f, 0.5f, 0.5f, glm::vec3(1.0f, 0.8f, 0.5f), glm::vec3(0.5f, 1.0f, 0.5f));
+	guis[0].setup(0.0f, 0.0f, 0.5f, 0.5f, glm::vec3(1.0f, 0.8f, 0.5f), 1);
 
 
 	Shader guiShader("../resources/shaders/guis.vert", "../resources/shaders/guis.frag");

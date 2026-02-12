@@ -298,24 +298,97 @@ private:
     unsigned int frameBufferPrivate, colorAttachment, depthAttachment, width, height;
 };
 
-class GUI {
-    // Prevent accidental copying or moving (which would corrupt OpenGL resource management)
-    
+class GUI {    
 public:
+
+    GUI(const GUI&) = delete;
+    GUI& operator=(const GUI&) = delete;
+    GUI(GUI&&) = delete;
+    GUI& operator=(GUI&&) = delete;
+
     float X, Y, width, height, borderWidth = 0.0f;
     glm::vec3 backgroundColor;
-    unsigned int VAO, VBO;
-    float vertices[12];
+    unsigned int VAO, VBO = 0;
+    float vertices[12]; //12 + 1 for smooth transition between geometry
+    float* vertsForBuffer;
     std::vector<float> totalVertices;
     int type = 0;
+    int place = -1;
+    int additionalElements = 0;
+    bool vertsAdded = false;
 
-    GUI(){}
+    GUI() : VAO(0), VBO(0) {}
 
     GUI(float x, float y, float width, float height, glm::vec3 backgroundColor, int type){
-        setup(x, y, width, height, backgroundColor, type);
+        mainSetup(x, y, width, height, backgroundColor, type);
     }
 
-    void setup(float x, float y, float width, float height, glm::vec3 backgroundColor, int type){
+    void printAllVerticies(){
+        for(int i = 0; i < totalVertices.size(); i++){
+            std::cout << "index " << i << ": " << totalVertices[i] << '\n';
+        }
+    }
+
+    void mainUpdateVertices(){
+        float x1 = X - width / 2.0f;
+        float y1 = Y - height / 2.0f;
+        float x2 = X + width / 2.0f;
+        float y2 = Y + height / 2.0f;
+
+        vertices[0] = x1; vertices[1] = y1; // bottom-left
+        vertices[2] = x2; vertices[3] = y1; // bottom-right
+        vertices[4] = x2; vertices[5] = y2; // top-right
+
+        vertices[6] = x2; vertices[7] = y2; // top-right
+        vertices[8] = x1; vertices[9] = y2; // top-left
+        vertices[10] = x1; vertices[11] = y1; // bottom-left
+
+        if(!vertsAdded){
+            for(int i = 0; i < 12; i++){
+                totalVertices.push_back(vertices[i]);
+            }
+            totalVertices.push_back(vertices[10]);
+            totalVertices.push_back(vertices[11]);
+            place = totalVertices.size() - 14;
+        }else{
+            for(int i = place; i < place + 12; i++){
+                totalVertices[i] = vertices[0];
+            }
+            totalVertices[place + 12] = vertices[10];
+            totalVertices[place + 13] = vertices[11];
+        }
+        if(type == 1){
+            if(vertsAdded) delete[] vertsForBuffer;
+            vertsAdded = true;
+            vertsForBuffer = new float[totalVertices.size()];
+            for(int i = 0; i < totalVertices.size(); i++) {
+                vertsForBuffer[i] = totalVertices[i];
+                std::cout << "index " << i << ": " << vertsForBuffer[i] << '\n';
+            }
+            updateBuffers();
+        }
+    }
+
+    virtual ~GUI(){
+        if(type == 1){
+            if (VAO != 0) glDeleteVertexArrays(1, &this->VAO);
+            if (VBO != 0) glDeleteBuffers(1, &this->VBO);
+            delete[] vertsForBuffer;
+        }
+    }
+
+
+    void updateBuffers(){
+        glBindVertexArray(this->VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+        glBufferData(GL_ARRAY_BUFFER, totalVertices.size() * sizeof(float), vertsForBuffer, GL_DYNAMIC_DRAW);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesAmount * sizeof(unsigned int), this->indices, GL_DYNAMIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    }
+
+    void mainSetup(float x, float y, float width, float height, glm::vec3 backgroundColor, int type){
         X = x;
         Y = y;
         this->width = width * 2.0f;
@@ -326,8 +399,46 @@ public:
             glGenVertexArrays(1, &this->VAO);
             glGenBuffers(1, &this->VBO);
         }
+        mainUpdateVertices();
+    }
+
+private:
+    
+};
+
+class Button : public GUI {
+public:
+GUI &parent;
+
+    Button(const Button&) = delete;
+    Button& operator=(const Button&) = delete;
+    Button(Button&&) = delete;
+    Button& operator=(Button&&) = delete;
+
+    Button(int parentIndex, float x, float y, float width, float height, glm::vec3 backgroundColor, int type, GUI *parentGUI) : parent(*parentGUI) {
+        this->place = parent.place + 13;
+        setup(x, y, width, height, backgroundColor, type);
+
+    }
+
+    ~Button(){}
+
+private:
+    void setup(float x, float y, float width, float height, glm::vec3 backgroundColor, int type){
+        X = x;
+        Y = y;
+        this->width = width * 2.0f;
+        this->height = height * 2.0f;
+        this->backgroundColor = backgroundColor;
+        this->type = type;
+        if(type == 1){
+            this->type = 2;
+            std::cout << "BUTTON ATTEMPTED TO BE TYPE 1\n";
+        }else{
+            this->type = type;
+        }
         updateVertices();
-        updateBuffers();
+        parent.mainUpdateVertices();
     }
 
     void updateVertices(){
@@ -343,47 +454,24 @@ public:
         vertices[6] = x2; vertices[7] = y2; // top-right
         vertices[8] = x1; vertices[9] = y2; // top-left
         vertices[10] = x1; vertices[11] = y1; // bottom-left
-        if(type == 1){
-            if(totalVertices.size() == 0){
-                for(int i = 0; i < 12; i++){
-                    totalVertices.push_back(vertices[i]);
-                }
-            }else{
-                for(int i = 0; i < 12; i++){
-                    totalVertices[i] = vertices[i];
-                }
+
+        if(!vertsAdded){
+            vertsAdded = true;
+            for(int i = 0; i < 12; i++){
+                parent.totalVertices.push_back(vertices[i]);
             }
+            parent.totalVertices.push_back(vertices[10]);
+            parent.totalVertices.push_back(vertices[11]);
+            place = parent.totalVertices.size() - 14;
         }else{
-
+            for(int i = place; i < place + 12; i++){
+                parent.totalVertices[i] = vertices[0];
+            }
+            parent.totalVertices[place + 12] = vertices[10];
+            parent.totalVertices[place + 13] = vertices[11];
         }
+        parent.updateBuffers();
     }
-
-    void updateBuffers(){
-        glBindVertexArray(this->VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesAmount * sizeof(unsigned int), this->indices, GL_DYNAMIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    }
-
-    ~GUI(){
-        glDeleteVertexArrays(1, &this->VAO);
-        glDeleteBuffers(1, &this->VBO);
-    }
-
-private:
-};
-
-class button : GUI {
-public:
-GUI &parentGUI;
-
-    button(GUI &parent){
-        parentGUI = parent;
-    }
-private:
 };
 
 #endif

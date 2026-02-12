@@ -198,8 +198,9 @@ int main(){
 	unsigned int guisAmount = 1;
 	GUI* guis;
 	guis = new GUI[guisAmount];
-	guis[0].setup(0.0f, 0.0f, 0.5f, 0.5f, glm::vec3(1.0f, 0.8f, 0.5f), 1);
-
+	guis[0].mainSetup(0.0f, 0.0f, 0.5f, 0.5f, glm::vec3(1.0f, 0.8f, 0.5f), 1);
+	Button testButton(0, -0.1f, 0.0f, 0.2f, 0.2f, glm::vec3(0.6f, 0.4f, 0.2f), 2, &guis[0]);
+	//guis[0].printAllVerticies();
 
 	Shader guiShader("../resources/shaders/guis.vert", "../resources/shaders/guis.frag");
 
@@ -220,7 +221,7 @@ int main(){
 		for(int i = 0; i < guisAmount; i++){
 		   glBindVertexArray(guis[i].VAO);
 		   guiShader.setVec3("backgroundColor", guis[i].backgroundColor);
-		   glDrawArrays(GL_TRIANGLES, 0, 6);
+		   glDrawArrays(GL_TRIANGLES, 0, guis[i].totalVertices.size() / 2);
 		}
 		
 		RenderText(text1Shader, "FPS: " + std::to_string(debug.FPS), 10.0f, window_height + 10.0f, 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));

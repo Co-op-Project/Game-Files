@@ -351,6 +351,30 @@ resources/libraries/imgui/imgui_widgets.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/DawsonGame.dir/build.make CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.s
 .PHONY : resources/libraries/imgui/imgui_widgets.cpp.s
 
+src/classes.o: src/classes.cpp.o
+.PHONY : src/classes.o
+
+# target to build an object file
+src/classes.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DawsonGame.dir/build.make CMakeFiles/DawsonGame.dir/src/classes.cpp.o
+.PHONY : src/classes.cpp.o
+
+src/classes.i: src/classes.cpp.i
+.PHONY : src/classes.i
+
+# target to preprocess a source file
+src/classes.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DawsonGame.dir/build.make CMakeFiles/DawsonGame.dir/src/classes.cpp.i
+.PHONY : src/classes.cpp.i
+
+src/classes.s: src/classes.cpp.s
+.PHONY : src/classes.s
+
+# target to generate assembly for a file
+src/classes.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DawsonGame.dir/build.make CMakeFiles/DawsonGame.dir/src/classes.cpp.s
+.PHONY : src/classes.cpp.s
+
 src/glad.o: src/glad.c.o
 .PHONY : src/glad.o
 
@@ -481,6 +505,9 @@ help:
 	@echo "... resources/libraries/imgui/imgui_widgets.o"
 	@echo "... resources/libraries/imgui/imgui_widgets.i"
 	@echo "... resources/libraries/imgui/imgui_widgets.s"
+	@echo "... src/classes.o"
+	@echo "... src/classes.i"
+	@echo "... src/classes.s"
 	@echo "... src/glad.o"
 	@echo "... src/glad.i"
 	@echo "... src/glad.s"

@@ -5,13 +5,13 @@
 # compile CXX with /usr/bin/g++
 C_DEFINES = 
 
-C_INCLUDES = -I/home/user/Documents/c++/DawsonGame/resources/libraries/glm -I/home/user/Documents/c++/DawsonGame/resources/libraries/imgui -I/home/user/Documents/c++/DawsonGame/resources/libraries/imgui/backends -I/home/user/Documents/c++/DawsonGame/resources/headers -I/home/user/Documents/c++/DawsonGame/resources/data -I/home/user/Documents/c++/DawsonGame/resources/shaders -I/home/user/Documents/c++/DawsonGame/resources/fonts -I/home/user/Documents/c++/DawsonGame/resources/textures -I/home/user/Documents/c++/DawsonGame/build/resources/libraries/freetype/include -I/home/user/Documents/c++/DawsonGame/resources/libraries/freetype/include
+C_INCLUDES = -I/home/user/Documents/c++/DawsonGame/resources/headers -I/home/user/Documents/c++/DawsonGame/resources/libraries/glm -I/home/user/Documents/c++/DawsonGame/resources/libraries/imgui -I/home/user/Documents/c++/DawsonGame/resources/libraries/imgui/backends -I/home/user/Documents/c++/DawsonGame/resources/data -I/home/user/Documents/c++/DawsonGame/resources/shaders -I/home/user/Documents/c++/DawsonGame/resources/fonts -I/home/user/Documents/c++/DawsonGame/resources/textures -I/home/user/Documents/c++/DawsonGame/build/resources/libraries/freetype/include -I/home/user/Documents/c++/DawsonGame/resources/libraries/freetype/include
 
 C_FLAGS = -g
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/user/Documents/c++/DawsonGame/resources/libraries/glm -I/home/user/Documents/c++/DawsonGame/resources/libraries/imgui -I/home/user/Documents/c++/DawsonGame/resources/libraries/imgui/backends -I/home/user/Documents/c++/DawsonGame/resources/headers -I/home/user/Documents/c++/DawsonGame/resources/data -I/home/user/Documents/c++/DawsonGame/resources/shaders -I/home/user/Documents/c++/DawsonGame/resources/fonts -I/home/user/Documents/c++/DawsonGame/resources/textures -I/home/user/Documents/c++/DawsonGame/build/resources/libraries/freetype/include -I/home/user/Documents/c++/DawsonGame/resources/libraries/freetype/include
+CXX_INCLUDES = -I/home/user/Documents/c++/DawsonGame/resources/headers -I/home/user/Documents/c++/DawsonGame/resources/libraries/glm -I/home/user/Documents/c++/DawsonGame/resources/libraries/imgui -I/home/user/Documents/c++/DawsonGame/resources/libraries/imgui/backends -I/home/user/Documents/c++/DawsonGame/resources/data -I/home/user/Documents/c++/DawsonGame/resources/shaders -I/home/user/Documents/c++/DawsonGame/resources/fonts -I/home/user/Documents/c++/DawsonGame/resources/textures -I/home/user/Documents/c++/DawsonGame/build/resources/libraries/freetype/include -I/home/user/Documents/c++/DawsonGame/resources/libraries/freetype/include
 
 CXX_FLAGS = -g
 

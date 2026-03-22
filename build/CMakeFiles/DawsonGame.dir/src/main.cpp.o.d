@@ -227,7 +227,7 @@ CMakeFiles/DawsonGame.dir/src/main.cpp.o: \
  /usr/include/c++/12/bits/quoted_string.h /usr/include/c++/12/sstream \
  /usr/include/c++/12/bits/sstream.tcc /usr/include/c++/12/codecvt \
  /usr/include/c++/12/bits/fs_dir.h /usr/include/c++/12/bits/fs_ops.h \
- /home/user/Documents/c++/DawsonGame/src/glad.h \
+ /home/user/Documents/c++/DawsonGame/resources/headers/glad.h \
  /usr/include/KHR/khrplatform.h /usr/include/GLFW/glfw3.h \
  /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imgui.h \
  /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imconfig.h \
@@ -454,6 +454,7 @@ CMakeFiles/DawsonGame.dir/src/main.cpp.o: \
  /home/user/Documents/c++/DawsonGame/resources/libraries/freetype/include/freetype/fterrdef.h \
  /home/user/Documents/c++/DawsonGame/src/inputHandler.cpp \
  /home/user/Documents/c++/DawsonGame/resources/headers/classes.h \
+ /home/user/Documents/c++/DawsonGame/resources/headers/glad.h \
  /home/user/Documents/c++/DawsonGame/resources/headers/stb_image.h \
  /usr/include/c++/12/fstream \
  /usr/include/x86_64-linux-gnu/c++/12/bits/basic_file.h \

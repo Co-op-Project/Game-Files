@@ -3,12 +3,14 @@ project(DawsonGame VERSION 0.1.0 LANGUAGES C CXX)
 cmake_policy(SET CMP0072 NEW)
 
 find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
 
 add_executable(DawsonGame 
     src/main.cpp
     src/glad.c
     src/inputHandler.cpp
     src/stb_image.cpp
+    src/classes.cpp
     resources/libraries/imgui/imgui_draw.cpp
     resources/libraries/imgui/imgui_tables.cpp
     resources/libraries/imgui/imgui_widgets.cpp
@@ -18,10 +20,10 @@ add_executable(DawsonGame
 )
 
 include_directories(
+    resources/headers
     resources/libraries/glm
     resources/libraries/imgui
     resources/libraries/imgui/backends
-    resources/headers
     resources/data
     resources/shaders
     resources/fonts

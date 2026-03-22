@@ -94,6 +94,11 @@ int main(){
 
     GLFWwindow* window = glfwCreateWindow(window_width, window_height, "openGL window", NULL/*glfwGetPrimaryMonitor()*/, NULL);
 	glfwMakeContextCurrent(window);
+	std::cout << "Context set to current. ALL couts must be after this.\n";
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -195,14 +200,24 @@ int main(){
 
 	stbi_set_flip_vertically_on_load(true);
 
-	unsigned int guisAmount = 1;
-	GUI* guis;
-	guis = new GUI[guisAmount];
-	guis[0].mainSetup(0.0f, 0.0f, 0.5f, 0.5f, glm::vec3(1.0f, 0.8f, 0.5f), 1);
-	Button testButton(0, -0.1f, 0.0f, 0.2f, 0.2f, glm::vec3(0.6f, 0.4f, 0.2f), 2, &guis[0]);
-	//guis[0].printAllVerticies();
+	const char* textureLevels[] = {
+		"../resources/textures/atlas.png"
+	};
 
-	Shader guiShader("../resources/shaders/guis.vert", "../resources/shaders/guis.frag");
+	Texture quadTexture(textureLevels, 1, GL_RGBA, false, 1);
+	
+	Shader quadShader("../resources/shaders/quad.vert", "../resources/shaders/quad.frag");
+	glGenVertexArrays(1, &Quad::VAO);
+    glGenBuffers(1, &Quad::VBO);
+    glGenBuffers(1, &Quad::EBO);
+	std::vector<Quad> quads;
+	quads.emplace_back(Quad(window_width * 0.5f, window_height * 0.5f, 200.0f, 200.0f, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), 1));
+	quads.emplace_back(Quad(window_width * 0.25f, window_height * 0.75f, 150.0f, 300.0f, glm::vec4(0.0f, 1.0f, 0.0f, 0.5f), 1));
+	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, glm::vec4(0.0f, 0.0f, 1.0f, 0.5f), 1));
+
+	glm::mat4 quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
+	quadShader.use();
+	quadShader.setMat4("projection", quadProjection);
 
     while (!glfwWindowShouldClose(window)) {
     	for (int i = 0; i < BUTTON_COUNT; i++) {
@@ -214,25 +229,28 @@ int main(){
     	lastTime = currentTime;
 
     	glfwPollEvents();
+		glClearColor(0.2f, 0.2f, 0.27f, 1.0f);
     	glClear(GL_COLOR_BUFFER_BIT);
-    	glClearColor(0.2f, 0.2f, 0.27f, 1.0f);
 
-		guiShader.use();
-		for(int i = 0; i < guisAmount; i++){
-		   glBindVertexArray(guis[i].VAO);
-		   guiShader.setVec3("backgroundColor", guis[i].backgroundColor);
-		   glDrawArrays(GL_TRIANGLES, 0, guis[i].totalVertices.size() / 2);
+		quadShader.use();
+		quadShader.setMat4("projection", quadProjection);
+		glBindVertexArray(Quad::VAO);
+
+		for(auto& currentQuad : quads){
+			quadShader.setVec4("backgroundColor", currentQuad.color);
+			if(currentQuad.render) glDrawElements(GL_TRIANGLES, currentQuad.indices.size(), GL_UNSIGNED_INT, (void*)(uintptr_t)(currentQuad.indicesStartIndex * sizeof(unsigned int)));
+/*GLenum err;
+while ((err = glGetError()) != GL_NO_ERROR) {
+    std::cout << "OpenGL error: " << err << std::endl;
+}*/
 		}
 		
 		RenderText(text1Shader, "FPS: " + std::to_string(debug.FPS), 10.0f, window_height + 10.0f, 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
 		
-		
-
     	debugInputs();
     	glfwSwapBuffers(window);
 	}
-
-	delete[] guis;
+	quads.clear();
     glfwTerminate();
 	return 0;
 }
@@ -372,4 +390,3 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
 	}
 }
-

@@ -11,6 +11,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o.d"
   "CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o"
   "CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o.d"
+  "CMakeFiles/DawsonGame.dir/src/classes.cpp.o"
+  "CMakeFiles/DawsonGame.dir/src/classes.cpp.o.d"
   "CMakeFiles/DawsonGame.dir/src/glad.c.o"
   "CMakeFiles/DawsonGame.dir/src/glad.c.o.d"
   "CMakeFiles/DawsonGame.dir/src/inputHandler.cpp.o"

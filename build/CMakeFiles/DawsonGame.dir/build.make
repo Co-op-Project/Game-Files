@@ -125,10 +125,24 @@ CMakeFiles/DawsonGame.dir/src/stb_image.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DawsonGame.dir/src/stb_image.cpp.s"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/user/Documents/c++/DawsonGame/src/stb_image.cpp -o CMakeFiles/DawsonGame.dir/src/stb_image.cpp.s
 
+CMakeFiles/DawsonGame.dir/src/classes.cpp.o: CMakeFiles/DawsonGame.dir/flags.make
+CMakeFiles/DawsonGame.dir/src/classes.cpp.o: /home/user/Documents/c++/DawsonGame/src/classes.cpp
+CMakeFiles/DawsonGame.dir/src/classes.cpp.o: CMakeFiles/DawsonGame.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/DawsonGame.dir/src/classes.cpp.o"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DawsonGame.dir/src/classes.cpp.o -MF CMakeFiles/DawsonGame.dir/src/classes.cpp.o.d -o CMakeFiles/DawsonGame.dir/src/classes.cpp.o -c /home/user/Documents/c++/DawsonGame/src/classes.cpp
+
+CMakeFiles/DawsonGame.dir/src/classes.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DawsonGame.dir/src/classes.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/user/Documents/c++/DawsonGame/src/classes.cpp > CMakeFiles/DawsonGame.dir/src/classes.cpp.i
+
+CMakeFiles/DawsonGame.dir/src/classes.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DawsonGame.dir/src/classes.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/user/Documents/c++/DawsonGame/src/classes.cpp -o CMakeFiles/DawsonGame.dir/src/classes.cpp.s
+
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o: CMakeFiles/DawsonGame.dir/flags.make
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o: /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imgui_draw.cpp
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o: CMakeFiles/DawsonGame.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o -MF CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o.d -o CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o -c /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imgui_draw.cpp
 
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.i: cmake_force
@@ -142,7 +156,7 @@ CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.s: cmake_forc
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o: CMakeFiles/DawsonGame.dir/flags.make
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o: /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imgui_tables.cpp
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o: CMakeFiles/DawsonGame.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o -MF CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o.d -o CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o -c /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imgui_tables.cpp
 
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.i: cmake_force
@@ -156,7 +170,7 @@ CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.s: cmake_fo
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o: CMakeFiles/DawsonGame.dir/flags.make
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o: /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imgui_widgets.cpp
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o: CMakeFiles/DawsonGame.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o -MF CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o.d -o CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o -c /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imgui_widgets.cpp
 
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.i: cmake_force
@@ -170,7 +184,7 @@ CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.s: cmake_f
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.o: CMakeFiles/DawsonGame.dir/flags.make
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.o: /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imgui.cpp
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.o: CMakeFiles/DawsonGame.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.o -MF CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.o.d -o CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.o -c /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/imgui.cpp
 
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.i: cmake_force
@@ -184,7 +198,7 @@ CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.s: cmake_force
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.o: CMakeFiles/DawsonGame.dir/flags.make
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.o: /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/backends/imgui_impl_glfw.cpp
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.o: CMakeFiles/DawsonGame.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.o -MF CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.o.d -o CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.o -c /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/backends/imgui_impl_glfw.cpp
 
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.i: cmake_force
@@ -198,7 +212,7 @@ CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o: CMakeFiles/DawsonGame.dir/flags.make
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o: /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o: CMakeFiles/DawsonGame.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o -MF CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o.d -o CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o -c /home/user/Documents/c++/DawsonGame/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp
 
 CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.i: cmake_force
@@ -215,6 +229,7 @@ DawsonGame_OBJECTS = \
 "CMakeFiles/DawsonGame.dir/src/glad.c.o" \
 "CMakeFiles/DawsonGame.dir/src/inputHandler.cpp.o" \
 "CMakeFiles/DawsonGame.dir/src/stb_image.cpp.o" \
+"CMakeFiles/DawsonGame.dir/src/classes.cpp.o" \
 "CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o" \
 "CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o" \
 "CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o" \
@@ -229,6 +244,7 @@ DawsonGame: CMakeFiles/DawsonGame.dir/src/main.cpp.o
 DawsonGame: CMakeFiles/DawsonGame.dir/src/glad.c.o
 DawsonGame: CMakeFiles/DawsonGame.dir/src/inputHandler.cpp.o
 DawsonGame: CMakeFiles/DawsonGame.dir/src/stb_image.cpp.o
+DawsonGame: CMakeFiles/DawsonGame.dir/src/classes.cpp.o
 DawsonGame: CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_draw.cpp.o
 DawsonGame: CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_tables.cpp.o
 DawsonGame: CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui_widgets.cpp.o
@@ -236,11 +252,12 @@ DawsonGame: CMakeFiles/DawsonGame.dir/resources/libraries/imgui/imgui.cpp.o
 DawsonGame: CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_glfw.cpp.o
 DawsonGame: CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o
 DawsonGame: CMakeFiles/DawsonGame.dir/build.make
+DawsonGame: /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
 DawsonGame: resources/libraries/freetype/libfreetyped.a
 DawsonGame: /usr/lib/x86_64-linux-gnu/libGLX.so
 DawsonGame: /usr/lib/x86_64-linux-gnu/libOpenGL.so
 DawsonGame: CMakeFiles/DawsonGame.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX executable DawsonGame"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX executable DawsonGame"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/DawsonGame.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

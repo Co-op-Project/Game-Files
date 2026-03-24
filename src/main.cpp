@@ -118,6 +118,13 @@ int main(){
 		return -1;
 	}
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330 core");
+
 	glEnable(GL_BLEND);
 	//glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
@@ -198,25 +205,21 @@ int main(){
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	stbi_set_flip_vertically_on_load(true);
-
-	const char* textureLevels[] = {
-		"../resources/textures/atlas.png"
-	};
-
-	Texture quadTexture(textureLevels, 1, GL_RGBA, false, 1);
+	Texture quadTexture("../resources/textures/atlas.png", 1, GL_RGBA, false, 1);
 	
 	Shader quadShader("../resources/shaders/quad.vert", "../resources/shaders/quad.frag");
 	glGenVertexArrays(1, &Quad::VAO);
     glGenBuffers(1, &Quad::VBO);
-    glGenBuffers(1, &Quad::EBO);
 	std::vector<Quad> quads;
-	quads.emplace_back(Quad(window_width * 0.5f, window_height * 0.5f, 200.0f, 200.0f, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), 1));
-	quads.emplace_back(Quad(window_width * 0.25f, window_height * 0.75f, 150.0f, 300.0f, glm::vec4(0.0f, 1.0f, 0.0f, 0.5f), 1));
-	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, glm::vec4(0.0f, 0.0f, 1.0f, 0.5f), 1));
+	quads.emplace_back(Quad(window_width * 0.5f, window_height * 0.5f, 200.0f, 200.0f, 993, true, 2, 1));
+	quads.emplace_back(Quad(window_width * 0.25f, window_height * 0.75f, 150.0f, 300.0f, 993, false, 1, 1));
+	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, 994, false, 1, 1));
+
+	quads[0].toString();
 
 	glm::mat4 quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	quadShader.use();
+	quadShader.setInt("texID", 1);
 	quadShader.setMat4("projection", quadProjection);
 
     while (!glfwWindowShouldClose(window)) {
@@ -232,31 +235,51 @@ int main(){
 		glClearColor(0.2f, 0.2f, 0.27f, 1.0f);
     	glClear(GL_COLOR_BUFFER_BIT);
 
+		quads[0].updateVertices();
+		if(pressed(BUTTON_1)){
+			quads[0].updateVertices();
+			quads[0].toString();
+		}
+
 		quadShader.use();
 		quadShader.setMat4("projection", quadProjection);
 		glBindVertexArray(Quad::VAO);
 
 		for(auto& currentQuad : quads){
-			quadShader.setVec4("backgroundColor", currentQuad.color);
-			if(currentQuad.render) glDrawElements(GL_TRIANGLES, currentQuad.indices.size(), GL_UNSIGNED_INT, (void*)(uintptr_t)(currentQuad.indicesStartIndex * sizeof(unsigned int)));
+			if(currentQuad.render) glDrawArrays(GL_TRIANGLES, currentQuad.verticesStartIndex / 4, 6);
+			//if(quads[0].render) glDrawElements(GL_TRIANGLES, Quad::indices.size(), GL_UNSIGNED_INT, (void*)(uintptr_t)(quads[0].indicesStartIndex * sizeof(unsigned int)));
 /*GLenum err;
 while ((err = glGetError()) != GL_NO_ERROR) {
     std::cout << "OpenGL error: " << err << std::endl;
 }*/
 		}
 		
-		RenderText(text1Shader, "FPS: " + std::to_string(debug.FPS), 10.0f, window_height + 10.0f, 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
-		
     	debugInputs();
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::Begin("ImGui window");
+		ImGui::Text("FPS: = %i", debug.FPS);
+		ImGui::SliderFloat("height", &quads[0].height, 0.0f, 500.0f, "%.3f", 0);
+		ImGui::SliderFloat("width", &quads[0].width, 0.0f, 500.0f, "%.3f", 0);
+		ImGui::End();
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     	glfwSwapBuffers(window);
 	}
+
 	quads.clear();
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
     glfwTerminate();
 	return 0;
 }
 
 void RenderText(Shader& s, std::string text, float x, float y, float scale, glm::vec3 color) {
-	// example: RenderText(text1Shader, "Diddy has come to take you", 10.0f, 10.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+ 	//example: RenderText(text1Shader, "FPS: " + std::to_string(debug.FPS), 10.0f, window_height + 10.0f, 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
 	// activate corresponding render state	
 	s.use();
 	glUniform3f(glGetUniformLocation(s.ID, "textColor"), color.x, color.y, color.z);

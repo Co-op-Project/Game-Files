@@ -5,9 +5,7 @@
 //Static definitions for Quad
 unsigned int Quad::VAO = 0;
 unsigned int Quad::VBO = 0;
-unsigned int Quad::EBO = 0;
 std::vector<float> Quad::vertices;
-std::vector<unsigned int> Quad::indices;
 
 //Shader implementation
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
@@ -109,38 +107,23 @@ void Shader::checkCompileErrors(GLuint shader, std::string type) {
 }
 
 // Texture implimentation
-Texture::Texture(const char* texturePaths[], short int textureNumber, GLint internalformat, bool atlas, int size) {
+Texture::Texture(const char* texturePath, short int textureNumber, GLint internalformat, bool atlas, int size) {
+    stbi_set_flip_vertically_on_load(true);
     glGenTextures(1, &ID);
     glActiveTexture(GL_TEXTURE0 + textureNumber);
     glBindTexture(GL_TEXTURE_2D, ID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-    if (atlas) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, size - 1);
-        for (int i = 0; i < size; i++) {
-            int width, height, nrChannels;
-            data = stbi_load(texturePaths[i], &width, &height, &nrChannels, 0);
-            if (data) {
-                glTexImage2D(GL_TEXTURE_2D, i, internalformat, width, height, 0, internalformat, GL_UNSIGNED_BYTE, data);
-            } else {
-                std::cout << "Failed to load texture" << std::endl;
-            }
-            stbi_image_free(data);
-        }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    int width, height, nrChannels;
+    data = stbi_load(texturePath, &width, &height, &nrChannels, 0);
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, internalformat, GL_UNSIGNED_BYTE, data);
     } else {
-        int width, height, nrChannels;
-        data = stbi_load(texturePaths[0], &width, &height, &nrChannels, 0);
-        if (data) {
-            glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, internalformat, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
-            std::cout << "Failed to load texture" << std::endl;
-        }
-        stbi_image_free(data);
+        std::cout << "Failed to load texture" << std::endl;
     }
+    stbi_image_free(data);
 }
 
 //framebuffer implimentation
@@ -208,21 +191,22 @@ void frameBuffer::readFrom() {
 // Quad implimentation
 Quad::Quad(Quad&& other) noexcept
     : X(other.X), Y(other.Y), width(other.width), height(other.height),
-      color(other.color), texture(other.texture), useColor(other.useColor),
-      added(other.added), verticesStartIndex(other.verticesStartIndex),
-      indicesStartIndex(other.indicesStartIndex), safeToDelete(other.safeToDelete)
+      texture(other.texture), added(other.added), verticesStartIndex(other.verticesStartIndex),
+      safeToDelete(other.safeToDelete), render(other.render), textureWidth(other.textureWidth), 
+      textureHeight(other.textureHeight)
 {
     other.safeToDelete = false; // Disarm the source so it won't delete GL objects
 }
 
-Quad::Quad(float x, float y, float width, float height, glm::vec4 color, int texture) {
+Quad::Quad(float x, float y, float width, float height, int texture, bool render, int texWidth, int texHeight) {
     X = x;
     Y = y;
     this->width = width;
     this->height = height;
-    this->color = color;
     this->texture = texture;
-    if (color.x == -1.0f) useColor = false;
+    this->render = render;
+    this->textureWidth = texWidth;
+    this->textureHeight = texHeight;
     updateVertices();
 }
 
@@ -232,31 +216,31 @@ void Quad::updateVertices() {
     float y1 = Y - height * 0.5f;
     float y2 = Y + height * 0.5f;
 
+    float unit = 32.0f/1024.0f;
+
+    float texX1 = ((float(texture % 32) * 32.0f) / 1024.0f);
+    float texX2 = ((float((texture + textureWidth) % 32) * 32.0f) / 1024.0f) + (unit * (width * unit * (1.0f/4.0f)) - 2 * unit);
+    float texY1 = ((float(texture / 32) * 32.0f) / 1024.0f);
+    float texY2 = ((float((texture + (textureHeight * 32)) / 32) * 32.0f) / 1024.0f) + (unit * (height * unit * (1.0f/4.0f)) - unit);
+
     if (added) {
-        vertices[verticesStartIndex] = x1;     vertices[verticesStartIndex + 1] = y1; //x1, y1
-        vertices[verticesStartIndex + 2] = x2; vertices[verticesStartIndex + 3] = y1; //x2, y1
-        vertices[verticesStartIndex + 4] = x2; vertices[verticesStartIndex + 5] = y2; //x2, y2
-        vertices[verticesStartIndex + 6] = x1;     vertices[verticesStartIndex + 7] = y2; //x1, y2
+        vertices[verticesStartIndex + 0] = x1;  vertices[verticesStartIndex + 1] = y1;  vertices[verticesStartIndex + 2] = texX1;   vertices[verticesStartIndex + 3] = texY1;   //x1, y1
+        vertices[verticesStartIndex + 4] = x2;  vertices[verticesStartIndex + 5] = y1;  vertices[verticesStartIndex + 6] = texX2;   vertices[verticesStartIndex + 7] = texY1;   //x2, y1
+        vertices[verticesStartIndex + 8] = x2;  vertices[verticesStartIndex + 9] = y2;  vertices[verticesStartIndex + 10] = texX2;  vertices[verticesStartIndex + 11] = texY2;  //x2, y2
+ 
+        vertices[verticesStartIndex + 12] = x2; vertices[verticesStartIndex + 13] = y2;  vertices[verticesStartIndex + 14] = texX2;  vertices[verticesStartIndex + 15] = texY2; //x2, y2
+        vertices[verticesStartIndex + 16] = x1; vertices[verticesStartIndex + 17] = y2;  vertices[verticesStartIndex + 18] = texX1;  vertices[verticesStartIndex + 19] = texY2; //x1, y2
+        vertices[verticesStartIndex + 20] = x1; vertices[verticesStartIndex + 21] = y1;  vertices[verticesStartIndex + 22] = texX1;  vertices[verticesStartIndex + 23] = texY1; //x1, y1
+
     } else {
         verticesStartIndex = vertices.size();
-        vertices.push_back(x1);  vertices.push_back(y1); //x1, y1
-        vertices.push_back(x2);  vertices.push_back(y1); //x2, y1
-        vertices.push_back(x2);  vertices.push_back(y2); //x2, y2
-        vertices.push_back(x1);  vertices.push_back(y2); //x1, y2
+        vertices.push_back(x1);  vertices.push_back(y1);  vertices.push_back(texX1);  vertices.push_back(texY1);//x1, y1
+        vertices.push_back(x2);  vertices.push_back(y1);  vertices.push_back(texX2);  vertices.push_back(texY1);//x2, y1
+        vertices.push_back(x2);  vertices.push_back(y2);  vertices.push_back(texX2);  vertices.push_back(texY2);//x2, y2
 
-        indicesStartIndex = indices.size();
-        unsigned int vertexBase = verticesStartIndex / 2; // convert float index → vertex index
-        indices.push_back(vertexBase);
-        indices.push_back(vertexBase + 1);
-        indices.push_back(vertexBase + 2);
-
-        indices.push_back(vertexBase + 2);
-        indices.push_back(vertexBase + 3);
-        indices.push_back(vertexBase);
-
-
-         //same index for line blend when changing quad
-        
+        vertices.push_back(x2);  vertices.push_back(y2);  vertices.push_back(texX2);  vertices.push_back(texY2);//x2, y2
+        vertices.push_back(x1);  vertices.push_back(y2);  vertices.push_back(texX1);  vertices.push_back(texY2);//x1, y2     
+        vertices.push_back(x1);  vertices.push_back(y1);  vertices.push_back(texX1);  vertices.push_back(texY1);//x1, y1   
     }
     added = true;
     updateBuffers();
@@ -265,27 +249,23 @@ void Quad::updateBuffers() {
     glBindVertexArray(this->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 }
 
 void Quad::toString(){
     std::cout << '\n' << "verticesStartIndex: " << verticesStartIndex << '\n';
-    std::cout << "vertices: " << vertices.size() << " indices: " << indices.size() << '\n';
-    for(int i = 0; i < vertices.size();) std::cout << "x: " << vertices[i++] << ", y: " << vertices[i++] << '\n';
-    std::cout << "INDICES: \n";
-    for(int i = 0; i < indices.size(); i++) std::cout << indices[i] << '\n';
+    std::cout << "vertices amount: " << vertices.size() << '\n';
+    for(int i = 0; i < vertices.size();) std::cout << "x: " << vertices[i++] << ", y: " << vertices[i++] << ", texX: " << vertices[i++] << ", texY: " << vertices[i++] << '\n';
     std::cout << "texture: " << texture << '\n';
-    std::cout << "r: " << color.x << ", g: " << color.y << ", b: " << color.z << ", a: " << color.w << '\n';
 }
 
 Quad::~Quad(){
     if(safeToDelete){
         glDeleteVertexArrays(1, &this->VAO);
         glDeleteBuffers(1, &this->VBO);
-        glDeleteBuffers(1, &this->EBO);
         safeToDelete = false;
     } 
 }

@@ -7,6 +7,8 @@
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
 
+extern int window_width, window_height;
+
 class Shader {
 public:
     unsigned int ID;
@@ -33,7 +35,7 @@ class Texture {
 public:
     unsigned int ID;
     unsigned char* data;
-    Texture(const char* texturePaths[], short int textureNumber, GLint internalformat, bool atlas, int size);
+    Texture(const char* texturePath, short int textureNumber, GLint internalformat, bool atlas, int size);
 };
 
 
@@ -56,18 +58,15 @@ Quad(const Quad&) = delete;
 
     static unsigned int VAO, VBO, EBO;
     float X, Y, width, height;
-    glm::vec4 color;
-    int texture;
-    bool useColor = true;
+    int texture, textureHeight, textureWidth;
     static std::vector<float> vertices;
-    static std::vector<unsigned int> indices;
     bool added = false;
     unsigned int verticesStartIndex;
-    unsigned int indicesStartIndex;
     bool safeToDelete = true;
     bool render = true;
+    float tileSize = 0.0f;
 
-    Quad(float x, float y, float width, float height, glm::vec4 color, int texture);
+    Quad(float x, float y, float width, float height, int texture, bool render, int texWidth, int texHeight);
     void updateVertices();
     void updateBuffers();
     void toString();

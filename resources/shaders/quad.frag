@@ -1,9 +1,10 @@
 #version 330 core
 out vec4 color;
 
-uniform vec4 backgroundColor;
+uniform sampler2D texID;
+in vec2 texCoords;
 
 void main()
 {    
-    color = vec4(backgroundColor);
+    color = texture(texID, texCoords);
 }

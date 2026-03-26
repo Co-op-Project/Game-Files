@@ -44,6 +44,10 @@ Debug debug;
 #define released(b) (!input.buttons[b].is_down && input.buttons[b].is_changed)
 #define debugInputs()\
 if (pressed(BUTTON_0))	debug.showWireFrame = !debug.showWireFrame;\
+if (pressed(BUTTON_ESCAPE)){\
+	debug.fullscreen = !debug.fullscreen;\
+	glfwSetWindowAttrib(window, GLFW_DECORATED, debug.fullscreen);\
+}\
 if (held(BUTTON_LEFT_CTRL) && held(BUTTON_LEFTSHIFT) && pressed(BUTTON_P)) {\
 	glfwSetWindowShouldClose(window, GLFW_TRUE);\
 	std::cout << "\nWindow force closed\n";\
@@ -84,13 +88,14 @@ bool firstMouse = true;
 int main(){
     srand(static_cast<unsigned int>(time(NULL)));
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DECORATED, GL_FALSE);
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	window_width = mode->width;
 	window_height = mode->height;
+	const int maxWindow_width = window_width;
+	const int maxWindow_height = window_height;
 
     GLFWwindow* window = glfwCreateWindow(window_width, window_height, "openGL window", NULL/*glfwGetPrimaryMonitor()*/, NULL);
 	glfwMakeContextCurrent(window);
@@ -123,7 +128,7 @@ int main(){
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330 core");
+	ImGui_ImplOpenGL3_Init("#version 460 core");
 
 	glEnable(GL_BLEND);
 	//glEnable(GL_DEPTH_TEST);
@@ -211,11 +216,12 @@ int main(){
 	glGenVertexArrays(1, &Quad::VAO);
     glGenBuffers(1, &Quad::VBO);
 	std::vector<Quad> quads;
-	quads.emplace_back(Quad(window_width * 0.5f, window_height * 0.5f, 200.0f, 200.0f, 993, true, 2, 1));
-	quads.emplace_back(Quad(window_width * 0.25f, window_height * 0.75f, 150.0f, 300.0f, 993, false, 1, 1));
-	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, 994, false, 1, 1));
+	quads.emplace_back(Quad(window_width * 0.5f, window_height * 0.5f, 128.0f, 128.0f, 992, true, 4.0f));
+	quads.emplace_back(Quad(window_width * 0.15f, window_height * 0.75f, 150.0f, 300.0f, 993, false, 8.0f));
+	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, 994, false, 2.0f));
 
-	quads[0].toString();
+	std::vector<myGUI> guis;
+	guis.emplace_back(myGUI(window_width * 0.7f, window_height * 0.7f, 64.0f, 64.0f, 996, true, 3.0f));
 
 	glm::mat4 quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	quadShader.use();
@@ -235,9 +241,8 @@ int main(){
 		glClearColor(0.2f, 0.2f, 0.27f, 1.0f);
     	glClear(GL_COLOR_BUFFER_BIT);
 
-		quads[0].updateVertices();
+		guis[0].updateVertices();
 		if(pressed(BUTTON_1)){
-			quads[0].updateVertices();
 			quads[0].toString();
 		}
 
@@ -245,7 +250,8 @@ int main(){
 		quadShader.setMat4("projection", quadProjection);
 		glBindVertexArray(Quad::VAO);
 
-		for(auto& currentQuad : quads){
+		for(auto& currentQuad : guis){
+			quadShader.setVec2("texMins", glm::vec2(currentQuad.texXmin, currentQuad.texYmin));
 			if(currentQuad.render) glDrawArrays(GL_TRIANGLES, currentQuad.verticesStartIndex / 4, 6);
 			//if(quads[0].render) glDrawElements(GL_TRIANGLES, Quad::indices.size(), GL_UNSIGNED_INT, (void*)(uintptr_t)(quads[0].indicesStartIndex * sizeof(unsigned int)));
 /*GLenum err;
@@ -261,8 +267,8 @@ while ((err = glGetError()) != GL_NO_ERROR) {
 		ImGui::NewFrame();
 		ImGui::Begin("ImGui window");
 		ImGui::Text("FPS: = %i", debug.FPS);
-		ImGui::SliderFloat("height", &quads[0].height, 0.0f, 500.0f, "%.3f", 0);
-		ImGui::SliderFloat("width", &quads[0].width, 0.0f, 500.0f, "%.3f", 0);
+		ImGui::SliderFloat("height", &guis[0].height, 0.0f, 2096.0f, "%.f", 0);
+		ImGui::SliderFloat("width", &guis[0].width, 0.0f, 2096.0f, "%.f", 0);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -270,7 +276,8 @@ while ((err = glGetError()) != GL_NO_ERROR) {
     	glfwSwapBuffers(window);
 	}
 
-	quads.clear();
+	glDeleteVertexArrays(1, &Quad::VAO);
+    glDeleteBuffers(1, &Quad::VBO);
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();

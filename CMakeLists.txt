@@ -34,6 +34,6 @@ add_subdirectory(resources/libraries/freetype)
 
 target_link_libraries(DawsonGame
     glfw
-    OpenGL::GL
+    OpenGL::OpenGL
     freetype
 )

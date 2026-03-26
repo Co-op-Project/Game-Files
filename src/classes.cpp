@@ -192,37 +192,38 @@ void frameBuffer::readFrom() {
 Quad::Quad(Quad&& other) noexcept
     : X(other.X), Y(other.Y), width(other.width), height(other.height),
       texture(other.texture), added(other.added), verticesStartIndex(other.verticesStartIndex),
-      safeToDelete(other.safeToDelete), render(other.render), textureWidth(other.textureWidth), 
-      textureHeight(other.textureHeight)
+      safeToDelete(other.safeToDelete), render(other.render), sizeRatio(other.sizeRatio),
+      texXmin(other.texXmin), texYmin(other.texYmin)
 {
     other.safeToDelete = false; // Disarm the source so it won't delete GL objects
 }
 
-Quad::Quad(float x, float y, float width, float height, int texture, bool render, int texWidth, int texHeight) {
-    X = x;
-    Y = y;
+//width and height in pixels of one whole texture unit is sizeRatio * 32
+Quad::Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio) {
+    X = x - sizeRatio * 8;
+    Y = y - sizeRatio * 8;
     this->width = width;
     this->height = height;
     this->texture = texture;
     this->render = render;
-    this->textureWidth = texWidth;
-    this->textureHeight = texHeight;
+    this->sizeRatio = sizeRatio;
     updateVertices();
 }
 
 void Quad::updateVertices() {
-    float x1 = X - width * 0.5f;
-    float x2 = X + width * 0.5f;
-    float y1 = Y - height * 0.5f;
-    float y2 = Y + height * 0.5f;
-
     float unit = 32.0f/1024.0f;
 
-    float texX1 = ((float(texture % 32) * 32.0f) / 1024.0f);
-    float texX2 = ((float((texture + textureWidth) % 32) * 32.0f) / 1024.0f) + (unit * (width * unit * (1.0f/4.0f)) - 2 * unit);
-    float texY1 = ((float(texture / 32) * 32.0f) / 1024.0f);
-    float texY2 = ((float((texture + (textureHeight * 32)) / 32) * 32.0f) / 1024.0f) + (unit * (height * unit * (1.0f/4.0f)) - unit);
+    float x1 = X;
+    float x2 = X + width * 0.5f;
+    float y1 = Y;
+    float y2 = Y + height * 0.5f;
 
+    float texX1 = ((float(texture % 32) * 32.0f) / 1024.0f);
+    float texX2 = ((float((texture + 1) % 32) * 32.0f) / 1024.0f) + (unit * (width * unit * (1.0f/sizeRatio)) - unit);
+    float texY1 = ((float(texture / 32) * 32.0f) / 1024.0f);
+    float texY2 = ((float((texture + 1 * 32) / 32) * 32.0f) / 1024.0f) + (unit * (height * unit * (1.0f/sizeRatio)) - unit);
+
+    texXmin = texX1; texYmin = texY1;
     if (added) {
         vertices[verticesStartIndex + 0] = x1;  vertices[verticesStartIndex + 1] = y1;  vertices[verticesStartIndex + 2] = texX1;   vertices[verticesStartIndex + 3] = texY1;   //x1, y1
         vertices[verticesStartIndex + 4] = x2;  vertices[verticesStartIndex + 5] = y1;  vertices[verticesStartIndex + 6] = texX2;   vertices[verticesStartIndex + 7] = texY1;   //x2, y1
@@ -257,15 +258,11 @@ void Quad::updateBuffers() {
 
 void Quad::toString(){
     std::cout << '\n' << "verticesStartIndex: " << verticesStartIndex << '\n';
-    std::cout << "vertices amount: " << vertices.size() << '\n';
-    for(int i = 0; i < vertices.size();) std::cout << "x: " << vertices[i++] << ", y: " << vertices[i++] << ", texX: " << vertices[i++] << ", texY: " << vertices[i++] << '\n';
+    std::cout << "all vertices amount: " << vertices.size() << '\n';
+    for(int i = verticesStartIndex; i < verticesStartIndex + 24;) std::cout << "x: " << vertices[i++] << ", y: " << vertices[i++] << ", texX: " << vertices[i++] << ", texY: " << vertices[i++] << '\n';
     std::cout << "texture: " << texture << '\n';
 }
 
 Quad::~Quad(){
-    if(safeToDelete){
-        glDeleteVertexArrays(1, &this->VAO);
-        glDeleteBuffers(1, &this->VBO);
-        safeToDelete = false;
-    } 
+    
 }

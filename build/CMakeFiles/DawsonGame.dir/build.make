@@ -253,9 +253,8 @@ DawsonGame: CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_i
 DawsonGame: CMakeFiles/DawsonGame.dir/resources/libraries/imgui/backends/imgui_impl_opengl3.cpp.o
 DawsonGame: CMakeFiles/DawsonGame.dir/build.make
 DawsonGame: /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
-DawsonGame: resources/libraries/freetype/libfreetyped.a
-DawsonGame: /usr/lib/x86_64-linux-gnu/libGLX.so
 DawsonGame: /usr/lib/x86_64-linux-gnu/libOpenGL.so
+DawsonGame: resources/libraries/freetype/libfreetyped.a
 DawsonGame: CMakeFiles/DawsonGame.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/user/Documents/c++/DawsonGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX executable DawsonGame"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/DawsonGame.dir/link.txt --verbose=$(VERBOSE)

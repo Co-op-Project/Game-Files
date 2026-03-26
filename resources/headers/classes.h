@@ -57,8 +57,8 @@ Quad(Quad&& other) noexcept;
 Quad(const Quad&) = delete;
 
     static unsigned int VAO, VBO, EBO;
-    float X, Y, width, height;
-    int texture, textureHeight, textureWidth;
+    float X, Y, width, height, sizeRatio, texXmin, texYmin;
+    int texture;
     static std::vector<float> vertices;
     bool added = false;
     unsigned int verticesStartIndex;
@@ -66,12 +66,19 @@ Quad(const Quad&) = delete;
     bool render = true;
     float tileSize = 0.0f;
 
-    Quad(float x, float y, float width, float height, int texture, bool render, int texWidth, int texHeight);
+    Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio);
     void updateVertices();
     void updateBuffers();
     void toString();
     ~Quad();
+
+private:
 };
 
+/*Future child classes  must have: class "child" : public "parent class"
+                              and: using "parent"::"parent"; */
+class myGUI : public Quad {
+    using Quad::Quad;
+};
 
 #endif

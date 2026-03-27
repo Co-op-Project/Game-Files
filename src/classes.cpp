@@ -200,6 +200,10 @@ Quad::Quad(Quad&& other) noexcept
 
 //width and height in pixels of one whole texture unit is sizeRatio * 32
 Quad::Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio) {
+    updateData(x, y, width, height, texture, render, sizeRatio);
+}
+
+void Quad::updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio){
     X = x - sizeRatio * 8;
     Y = y - sizeRatio * 8;
     this->width = width;
@@ -263,6 +267,45 @@ void Quad::toString(){
     std::cout << "texture: " << texture << '\n';
 }
 
-Quad::~Quad(){
-    
+Quad::~Quad(){}
+
+Quad::Quad(){}
+
+void Quad::draw(Shader &s){
+    s.setVec2("texMins", glm::vec2(texXmin, texYmin));
+    if(render) glDrawArrays(GL_TRIANGLES, verticesStartIndex / 4, 6);
+}
+
+myGUI::myGUI(float x, float y, float width, float height, bool render, float sizeRatio) {
+    X = x - sizeRatio * 8;
+    Y = y - sizeRatio * 8;
+    this->width = width;
+    this->height = height;
+    this->render = render;
+    this->sizeRatio = sizeRatio; 
+    updateGUI();
+} 
+
+void myGUI::updateGUI(){
+    background.updateData(X, Y, width, height, 996, render, sizeRatio);
+    top.updateData(X, Y + height * 0.5f - sizeRatio * 16, width, sizeRatio * 32, 994, render, sizeRatio);
+    bottom.updateData(X, Y, width, sizeRatio * 32 - 1, 992, render, sizeRatio);
+    left.updateData(X, Y, sizeRatio * 32, height, 993, render, sizeRatio);
+    right.updateData(X + width * 0.5f - sizeRatio * 16, Y, sizeRatio * 32, height, 995, render, sizeRatio);
+}
+
+void myGUI::draw(Shader &s){
+    background.draw(s);
+    top.draw(s);
+    bottom.draw(s);
+    left.draw(s);
+    right.draw(s);
+}
+
+void myGUI::toString(){
+    top.toString();
+    bottom.toString();
+    left.toString();
+    right.toString();
+    background.toString();
 }

@@ -221,7 +221,7 @@ int main(){
 	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, 994, false, 2.0f));
 
 	std::vector<myGUI> guis;
-	guis.emplace_back(myGUI(window_width * 0.7f, window_height * 0.7f, 64.0f, 64.0f, 996, true, 3.0f));
+	guis.emplace_back(myGUI(window_width * 0.2f, window_height * 0.2f, 256.0f, 256.0f, true, 4.0f));
 
 	glm::mat4 quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	quadShader.use();
@@ -241,9 +241,10 @@ int main(){
 		glClearColor(0.2f, 0.2f, 0.27f, 1.0f);
     	glClear(GL_COLOR_BUFFER_BIT);
 
-		guis[0].updateVertices();
+		guis[0].updateGUI();
+		//guis[0].updateGUI();
 		if(pressed(BUTTON_1)){
-			quads[0].toString();
+			guis[0].toString();
 		}
 
 		quadShader.use();
@@ -251,8 +252,7 @@ int main(){
 		glBindVertexArray(Quad::VAO);
 
 		for(auto& currentQuad : guis){
-			quadShader.setVec2("texMins", glm::vec2(currentQuad.texXmin, currentQuad.texYmin));
-			if(currentQuad.render) glDrawArrays(GL_TRIANGLES, currentQuad.verticesStartIndex / 4, 6);
+			currentQuad.draw(quadShader);
 			//if(quads[0].render) glDrawElements(GL_TRIANGLES, Quad::indices.size(), GL_UNSIGNED_INT, (void*)(uintptr_t)(quads[0].indicesStartIndex * sizeof(unsigned int)));
 /*GLenum err;
 while ((err = glGetError()) != GL_NO_ERROR) {

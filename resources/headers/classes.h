@@ -67,9 +67,12 @@ Quad(const Quad&) = delete;
     float tileSize = 0.0f;
 
     Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio);
+    Quad();
     void updateVertices();
+    void updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio);
     void updateBuffers();
     void toString();
+    void draw(Shader &s);
     ~Quad();
 
 private:
@@ -78,7 +81,19 @@ private:
 /*Future child classes  must have: class "child" : public "parent class"
                               and: using "parent"::"parent"; */
 class myGUI : public Quad {
+public:
     using Quad::Quad;
+
+    Quad bottom;
+    Quad top;
+    Quad left;
+    Quad right;
+    Quad background;
+
+    myGUI(float x, float y, float width, float height, bool render, float sizeRatio);
+    void updateGUI();
+    void draw(Shader &s);
+    void toString();
 };
 
 #endif

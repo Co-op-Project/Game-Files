@@ -30,8 +30,8 @@
 #include FT_FREETYPE_H
 
 double pi = 3.141592653589793;
-float deltaTime, lastTime = 0.0f;
-int window_width, window_height;
+float deltaTime = 0.0f, lastTime = 0.0f, change1 = 0.0f, change2 = 0.0f, change3 = 0.0f, window_width, window_height, startingWindow_width, startingWindow_height;
+glm::mat4 quadProjection = glm::mat4(1.0f);
 
 #include "inputHandler.cpp"
 #include "classes.h"
@@ -91,11 +91,12 @@ int main(){
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	window_width = mode->width;
 	window_height = mode->height;
-	const int maxWindow_width = window_width;
-	const int maxWindow_height = window_height;
+	startingWindow_width = window_width;
+	startingWindow_height = window_height;
 
     GLFWwindow* window = glfwCreateWindow(window_width, window_height, "openGL window", NULL/*glfwGetPrimaryMonitor()*/, NULL);
 	glfwMakeContextCurrent(window);
@@ -221,9 +222,9 @@ int main(){
 	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, 994, false, 2.0f));
 
 	std::vector<myGUI> guis;
-	guis.emplace_back(myGUI(window_width * 0.2f, window_height * 0.2f, 256.0f, 256.0f, true, 4.0f));
+	guis.emplace_back(myGUI(0.3f, 0.3f, 0.5f, 0.5f, true, 4.0f));
 
-	glm::mat4 quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
+	quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	quadShader.use();
 	quadShader.setInt("texID", 1);
 	quadShader.setMat4("projection", quadProjection);
@@ -238,11 +239,9 @@ int main(){
     	lastTime = currentTime;
 
     	glfwPollEvents();
-		glClearColor(0.2f, 0.2f, 0.27f, 1.0f);
+		glClearColor(0.8f, 0.4f, 0.4f, 1.0f);
     	glClear(GL_COLOR_BUFFER_BIT);
 
-		guis[0].updateGUI();
-		//guis[0].updateGUI();
 		if(pressed(BUTTON_1)){
 			guis[0].toString();
 		}
@@ -252,6 +251,7 @@ int main(){
 		glBindVertexArray(Quad::VAO);
 
 		for(auto& currentQuad : guis){
+			currentQuad.updateGUI();
 			currentQuad.draw(quadShader);
 			//if(quads[0].render) glDrawElements(GL_TRIANGLES, Quad::indices.size(), GL_UNSIGNED_INT, (void*)(uintptr_t)(quads[0].indicesStartIndex * sizeof(unsigned int)));
 /*GLenum err;
@@ -267,8 +267,11 @@ while ((err = glGetError()) != GL_NO_ERROR) {
 		ImGui::NewFrame();
 		ImGui::Begin("ImGui window");
 		ImGui::Text("FPS: = %i", debug.FPS);
-		ImGui::SliderFloat("height", &guis[0].height, 0.0f, 2096.0f, "%.f", 0);
-		ImGui::SliderFloat("width", &guis[0].width, 0.0f, 2096.0f, "%.f", 0);
+		ImGui::SliderFloat("height", &guis[0].height, 0.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("width", &guis[0].width, 0.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("x", &guis[0].X, 0.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("y", &guis[0].Y, 0.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("size ratio", &guis[0].sizeRatio, 1.0f, 16.0f, "%.f", 0);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -332,6 +335,7 @@ void RenderText(Shader& s, std::string text, float x, float y, float scale, glm:
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	window_width = width;
 	window_height = height;
+	quadProjection = glm::ortho(0.0f, float(window_width), 0.0f, float(window_height));
 	glViewport(0, 0, width, height);
 }
 

@@ -56,7 +56,7 @@ struct Input {
 
 struct Debug {
 	bool showWireFrame = false;
-	unsigned short nextFPScounter = 0;
+	float nextFPScounter = 0;
 	short int FPS = 0;
 	bool fullscreen = true;
 	bool mouseLocked = true;

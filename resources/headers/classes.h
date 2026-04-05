@@ -7,7 +7,7 @@
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
 
-extern int window_width, window_height;
+extern float window_width, window_height, startingWindow_width, startingWindow_height;
 
 class Shader {
 public:
@@ -57,14 +57,14 @@ Quad(Quad&& other) noexcept;
 Quad(const Quad&) = delete;
 
     static unsigned int VAO, VBO, EBO;
-    float X, Y, width, height, sizeRatio, texXmin, texYmin;
+    float X = 0.0f, Y = 0.0f, width, height, sizeRatio, texXmin, texYmin, preX, preY;
     int texture;
     static std::vector<float> vertices;
     bool added = false;
     unsigned int verticesStartIndex;
-    bool safeToDelete = true;
     bool render = true;
     float tileSize = 0.0f;
+    glm::mat4 model = glm::mat4(1.0f);
 
     Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio);
     Quad();

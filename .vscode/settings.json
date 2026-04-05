@@ -100,10 +100,26 @@
                 "settings": {
                     "foreground": "#ff15e0"
                 },
+            },
+            {
+                "scope": "entity.name.namespace",
+                "settings": {
+                    "foreground": "#15ad24"
+                },
+            },
+            {
+                "scope": "variable.other.global",
+                "settings": {
+                    "foreground": "#3f45f5"
+                },
             }
         ]
     },
     "github.copilot.enable": {
-        "*": false
+        "*": false,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false,
+        "cpp": false
     }
 }

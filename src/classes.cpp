@@ -192,11 +192,9 @@ void frameBuffer::readFrom() {
 Quad::Quad(Quad&& other) noexcept
     : X(other.X), Y(other.Y), width(other.width), height(other.height),
       texture(other.texture), added(other.added), verticesStartIndex(other.verticesStartIndex),
-      safeToDelete(other.safeToDelete), render(other.render), sizeRatio(other.sizeRatio),
-      texXmin(other.texXmin), texYmin(other.texYmin)
-{
-    other.safeToDelete = false; // Disarm the source so it won't delete GL objects
-}
+      render(other.render), sizeRatio(other.sizeRatio),
+      texXmin(other.texXmin), texYmin(other.texYmin), model(other.model), preX(other.preX), preY(other.preY)
+{}
 
 //width and height in pixels of one whole texture unit is sizeRatio * 32
 Quad::Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio) {
@@ -204,28 +202,32 @@ Quad::Quad(float x, float y, float width, float height, int texture, bool render
 }
 
 void Quad::updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio){
-    X = x - sizeRatio * 8;
-    Y = y - sizeRatio * 8;
-    this->width = width;
-    this->height = height;
-    this->texture = texture;
-    this->render = render;
-    this->sizeRatio = sizeRatio;
-    updateVertices();
+    bool needsUpdate = false;
+    X = x * window_width;
+    Y = y * window_height;
+    if(width * window_height != this->width || height * window_height != this->height || this->texture != texture || this->sizeRatio != sizeRatio) needsUpdate = true;
+    if(needsUpdate){
+        this->width = width * window_height;
+        this->height = height * window_height;
+        this->texture = texture;
+        this->render = render;
+        this->sizeRatio = sizeRatio;
+        updateVertices();
+    }
 }
 
 void Quad::updateVertices() {
     float unit = 32.0f/1024.0f;
 
-    float x1 = X;
-    float x2 = X + width * 0.5f;
-    float y1 = Y;
-    float y2 = Y + height * 0.5f;
+    float x1 = 0.0f - width * 0.5f;
+    float x2 = width * 0.5f;
+    float y1 = 0.0f - height * 0.5f;
+    float y2 = height * 0.5f;
 
     float texX1 = ((float(texture % 32) * 32.0f) / 1024.0f);
-    float texX2 = ((float((texture + 1) % 32) * 32.0f) / 1024.0f) + (unit * (width * unit * (1.0f/sizeRatio)) - unit);
+    float texX2 = ((float((texture + 1) % 32) * 32.0f) / 1024.0f) + (unit * (width * unit * (1.0f/(sizeRatio))) - unit);
     float texY1 = ((float(texture / 32) * 32.0f) / 1024.0f);
-    float texY2 = ((float((texture + 1 * 32) / 32) * 32.0f) / 1024.0f) + (unit * (height * unit * (1.0f/sizeRatio)) - unit);
+    float texY2 = ((float((texture + 1 * 32) / 32) * 32.0f) / 1024.0f) + (unit * (height * unit * (1.0f/(sizeRatio))) - unit);
 
     texXmin = texX1; texYmin = texY1;
     if (added) {
@@ -272,13 +274,21 @@ Quad::~Quad(){}
 Quad::Quad(){}
 
 void Quad::draw(Shader &s){
-    s.setVec2("texMins", glm::vec2(texXmin, texYmin));
-    if(render) glDrawArrays(GL_TRIANGLES, verticesStartIndex / 4, 6);
+    if(render){
+        if(preX != X || preY != Y){
+            preX = X;
+            preY = Y;
+            this->model = glm::translate(glm::mat4(1.0f), glm::vec3(X, Y, 0.0f));
+        }
+        s.setMat4("model", this->model);
+        s.setVec2("texMins", glm::vec2(texXmin, texYmin));
+        glDrawArrays(GL_TRIANGLES, verticesStartIndex / 4, 6);
+    }
 }
 
 myGUI::myGUI(float x, float y, float width, float height, bool render, float sizeRatio) {
-    X = x - sizeRatio * 8;
-    Y = y - sizeRatio * 8;
+    X = x;
+    Y = y;
     this->width = width;
     this->height = height;
     this->render = render;
@@ -287,11 +297,12 @@ myGUI::myGUI(float x, float y, float width, float height, bool render, float siz
 } 
 
 void myGUI::updateGUI(){
-    background.updateData(X, Y, width, height, 996, render, sizeRatio);
-    top.updateData(X, Y + height * 0.5f - sizeRatio * 16, width, sizeRatio * 32, 994, render, sizeRatio);
-    bottom.updateData(X, Y, width, sizeRatio * 32 - 1, 992, render, sizeRatio);
-    left.updateData(X, Y, sizeRatio * 32, height, 993, render, sizeRatio);
-    right.updateData(X + width * 0.5f - sizeRatio * 16, Y, sizeRatio * 32, height, 995, render, sizeRatio);
+    float tempSizeRatio = sizeRatio * (window_height / startingWindow_height);
+    background.updateData(X, Y, width, height, 996, render, tempSizeRatio);
+    top.updateData(X, Y + height * 0.5f, width, (tempSizeRatio / 32.0f) * (startingWindow_height / window_height), 994, render, tempSizeRatio);
+    bottom.updateData(X, Y - height * 0.5f, width, (tempSizeRatio / 32.0f) * (startingWindow_height / window_height), 992, render, tempSizeRatio);
+    left.updateData(X - width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 32.0f) * (startingWindow_height / window_height), height, 993, render, tempSizeRatio);
+    right.updateData(X + width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 32.0f) * (startingWindow_height / window_height), height, 995, render, tempSizeRatio);
 }
 
 void myGUI::draw(Shader &s){

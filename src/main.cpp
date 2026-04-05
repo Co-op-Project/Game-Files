@@ -46,18 +46,23 @@ Debug debug;
 if (pressed(BUTTON_0))	debug.showWireFrame = !debug.showWireFrame;\
 if (pressed(BUTTON_ESCAPE)){\
 	debug.fullscreen = !debug.fullscreen;\
-	glfwSetWindowAttrib(window, GLFW_DECORATED, debug.fullscreen);\
+	glfwSetWindowAttrib(window, GLFW_DECORATED, !debug.fullscreen);\
+	if(debug.fullscreen) {\
+		glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, startingWindow_width, startingWindow_height, 60);\
+		glfwSetWindowSize(window, startingWindow_width, startingWindow_height);\
+	} else {\
+		glfwSetWindowMonitor(window, nullptr, 0, 0, startingWindow_width, startingWindow_height, 60);\
+		glfwSetWindowSize(window, static_cast<int>(startingWindow_width * 0.8f), static_cast<int>(startingWindow_height * 0.8f));\
+	}\
 }\
 if (held(BUTTON_LEFT_CTRL) && held(BUTTON_LEFTSHIFT) && pressed(BUTTON_P)) {\
 	glfwSetWindowShouldClose(window, GLFW_TRUE);\
 	std::cout << "\nWindow force closed\n";\
 }\
-if (debug.nextFPScounter > debug.FPS) {\
-	debug.nextFPScounter = 0;\
+debug.nextFPScounter += deltaTime;\
+if (debug.nextFPScounter >= 0.8f) {\
+	debug.nextFPScounter = 0.0f;\
 	debug.FPS = static_cast<short>(1.0f / deltaTime);\
-}\
-else {\
-	debug.nextFPScounter++;\
 }\
 if (debug.showWireFrame) {\
 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);\
@@ -71,6 +76,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void window_focus_callback(GLFWwindow* window, int focused);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int bits);
 
 struct Character {
 	unsigned int TextureID;  // ID handle of the glyph texture
@@ -91,14 +98,14 @@ int main(){
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	window_width = mode->width;
 	window_height = mode->height;
 	startingWindow_width = window_width;
 	startingWindow_height = window_height;
 
-    GLFWwindow* window = glfwCreateWindow(window_width, window_height, "openGL window", NULL/*glfwGetPrimaryMonitor()*/, NULL);
+    GLFWwindow* window = glfwCreateWindow(window_width, window_height, "openGL window", glfwGetPrimaryMonitor(), NULL);
 	glfwMakeContextCurrent(window);
 	std::cout << "Context set to current. ALL couts must be after this.\n";
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -117,6 +124,8 @@ int main(){
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetWindowFocusCallback(window, window_focus_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -261,6 +270,10 @@ while ((err = glGetError()) != GL_NO_ERROR) {
 		}
 		
     	debugInputs();
+		if(held(MOUSE_LEFT_FRONT)) guis[0].X -= 1.0f * deltaTime;
+		if(held(BUTTON_RIGHT)) guis[0].X += 1.0f * deltaTime;
+		if(held(BUTTON_UP)) guis[0].Y += 1.0f * deltaTime;
+		if(held(BUTTON_DOWN)) guis[0].Y -= 1.0f * deltaTime;
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -340,9 +353,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (action == 2) {
-		action = 1;
-	}
+	if (action == 2) action = 1;
 
 #define process_button(b, keyCode)\
 case keyCode: {\
@@ -394,6 +405,10 @@ input.buttons[b].is_down = bool(action);\
 		process_button(BUTTON_Y, 89);
 		process_button(BUTTON_Z, 90);
 		process_button(BUTTON_LEFT_CTRL, 341);
+		process_button(BUTTON_LEFT, 263);
+		process_button(BUTTON_RIGHT, 262);
+		process_button(BUTTON_UP, 265);
+		process_button(BUTTON_DOWN, 264);
 	default:
 		break;
 	}
@@ -424,3 +439,45 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
 	}
 }
+
+void window_focus_callback(GLFWwindow* window, int focused) {
+	for (int i = 0; i < BUTTON_COUNT; i++) {
+        input.buttons[i].is_down = false;
+        input.buttons[i].is_changed = false;
+    }
+	bool leftButtonPressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    bool rightButtonPressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+    input.buttons[MOUSE_LEFT].is_down = leftButtonPressed;
+    input.buttons[MOUSE_RIGHT].is_down = rightButtonPressed;
+    if (focused) {
+        // Explicitly query current cursor position and update tracking
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        lastX = static_cast<float>(xpos); 
+        lastY = static_cast<float>(ypos);
+        firstMouse = false;
+    }else{
+		firstMouse = true;
+	}
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+
+#define process_button(b, keyCode)\
+case keyCode: {\
+input.buttons[b].is_changed = (bool(action) != input.buttons[b].is_down);\
+input.buttons[b].is_down = bool(action);\
+} break;\
+
+	switch (button){
+		process_button(MOUSE_LEFT, 0);
+		process_button(MOUSE_RIGHT, 1);
+		process_button(MOUSE_SCROLL_WHEEL, 2);
+		process_button(MOUSE_LEFT_BACK, 3);
+		process_button(MOUSE_LEFT_FRONT, 4);
+	default:
+		break;
+	}
+}
+

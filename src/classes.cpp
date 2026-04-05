@@ -196,7 +196,6 @@ Quad::Quad(Quad&& other) noexcept
       texXmin(other.texXmin), texYmin(other.texYmin), model(other.model), preX(other.preX), preY(other.preY)
 {}
 
-//width and height in pixels of one whole texture unit is sizeRatio * 32
 Quad::Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio) {
     updateData(x, y, width, height, texture, render, sizeRatio);
 }
@@ -205,12 +204,12 @@ void Quad::updateData(float x, float y, float width, float height, int texture, 
     bool needsUpdate = false;
     X = x * window_width;
     Y = y * window_height;
+    this->render = render;
     if(width * window_height != this->width || height * window_height != this->height || this->texture != texture || this->sizeRatio != sizeRatio) needsUpdate = true;
     if(needsUpdate){
         this->width = width * window_height;
         this->height = height * window_height;
         this->texture = texture;
-        this->render = render;
         this->sizeRatio = sizeRatio;
         updateVertices();
     }
@@ -299,10 +298,10 @@ myGUI::myGUI(float x, float y, float width, float height, bool render, float siz
 void myGUI::updateGUI(){
     float tempSizeRatio = sizeRatio * (window_height / startingWindow_height);
     background.updateData(X, Y, width, height, 996, render, tempSizeRatio);
-    top.updateData(X, Y + height * 0.5f, width, (tempSizeRatio / 32.0f) * (startingWindow_height / window_height), 994, render, tempSizeRatio);
-    bottom.updateData(X, Y - height * 0.5f, width, (tempSizeRatio / 32.0f) * (startingWindow_height / window_height), 992, render, tempSizeRatio);
-    left.updateData(X - width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 32.0f) * (startingWindow_height / window_height), height, 993, render, tempSizeRatio);
-    right.updateData(X + width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 32.0f) * (startingWindow_height / window_height), height, 995, render, tempSizeRatio);
+    top.updateData(X, Y + height * 0.5f, width, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), 994, render, tempSizeRatio);
+    bottom.updateData(X, Y - height * 0.5f, width, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), 992, render, tempSizeRatio);
+    left.updateData(X - width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), height, 993, render, tempSizeRatio);
+    right.updateData(X + width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), height, 995, render, tempSizeRatio);
 }
 
 void myGUI::draw(Shader &s){

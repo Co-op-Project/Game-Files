@@ -6,8 +6,10 @@
 #include <fstream>
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
+#include "inputHandler.cpp"
 
 extern float window_width, window_height, startingWindow_width, startingWindow_height;
+extern Input input;
 
 class Shader {
 public:

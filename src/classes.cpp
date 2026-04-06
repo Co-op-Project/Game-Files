@@ -296,12 +296,13 @@ myGUI::myGUI(float x, float y, float width, float height, bool render, float siz
 } 
 
 void myGUI::updateGUI(){
+    bool tempRender = width != 0.0f && height != 0.0f && render;
     float tempSizeRatio = sizeRatio * (window_height / startingWindow_height);
-    background.updateData(X, Y, width, height, 996, render, tempSizeRatio);
-    top.updateData(X, Y + height * 0.5f, width, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), 994, render, tempSizeRatio);
-    bottom.updateData(X, Y - height * 0.5f, width, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), 992, render, tempSizeRatio);
-    left.updateData(X - width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), height, 993, render, tempSizeRatio);
-    right.updateData(X + width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), height, 995, render, tempSizeRatio);
+    background.updateData(X, Y, width, height, 996, tempRender, tempSizeRatio);
+    top.updateData(X, Y + height * 0.5f, width, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), 994, tempRender, tempSizeRatio);
+    bottom.updateData(X, Y - height * 0.5f, width, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), 992, tempRender, tempSizeRatio);
+    left.updateData(X - width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), height, 993, tempRender, tempSizeRatio);
+    right.updateData(X + width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), height, 995, tempRender, tempSizeRatio);
 }
 
 void myGUI::draw(Shader &s){

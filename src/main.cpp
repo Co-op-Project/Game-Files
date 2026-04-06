@@ -33,15 +33,11 @@ double pi = 3.141592653589793;
 float deltaTime = 0.0f, lastTime = 0.0f, change1 = 0.0f, change2 = 0.0f, change3 = 0.0f, window_width, window_height, startingWindow_width, startingWindow_height;
 glm::mat4 quadProjection = glm::mat4(1.0f);
 
-#include "inputHandler.cpp"
-#include "classes.h"
+#include "classes.h" //includes inputHandler.cpp
 
 Input input;
 Debug debug;
 
-#define held(b) input.buttons[b].is_down
-#define pressed(b) (input.buttons[b].is_down && input.buttons[b].is_changed)
-#define released(b) (!input.buttons[b].is_down && input.buttons[b].is_changed)
 #define debugInputs()\
 if (pressed(BUTTON_0))	debug.showWireFrame = !debug.showWireFrame;\
 if (pressed(BUTTON_ESCAPE)){\
@@ -270,10 +266,6 @@ while ((err = glGetError()) != GL_NO_ERROR) {
 		}
 		
     	debugInputs();
-		if(held(MOUSE_LEFT_FRONT)) guis[0].X -= 1.0f * deltaTime;
-		if(held(BUTTON_RIGHT)) guis[0].X += 1.0f * deltaTime;
-		if(held(BUTTON_UP)) guis[0].Y += 1.0f * deltaTime;
-		if(held(BUTTON_DOWN)) guis[0].Y -= 1.0f * deltaTime;
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();

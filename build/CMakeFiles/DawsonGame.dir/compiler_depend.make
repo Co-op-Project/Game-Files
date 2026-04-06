@@ -1466,6 +1466,7 @@ CMakeFiles/DawsonGame.dir/src/classes.cpp.o: /home/user/Documents/c++/DawsonGame
   /usr/include/string.h \
   /usr/include/strings.h \
   /home/user/Documents/c++/DawsonGame/resources/libraries/glm/glm/gtc/type_ptr.inl \
+  /home/user/Documents/c++/DawsonGame/src/inputHandler.cpp \
   /home/user/Documents/c++/DawsonGame/resources/headers/glad.h \
   /usr/include/c++/12/iostream
 
@@ -2059,14 +2060,14 @@ CMakeFiles/DawsonGame.dir/src/main.cpp.o: /home/user/Documents/c++/DawsonGame/sr
   /home/user/Documents/c++/DawsonGame/resources/libraries/freetype/include/freetype/fterrors.h \
   /home/user/Documents/c++/DawsonGame/resources/libraries/freetype/include/freetype/ftmoderr.h \
   /home/user/Documents/c++/DawsonGame/resources/libraries/freetype/include/freetype/fterrdef.h \
-  /home/user/Documents/c++/DawsonGame/src/inputHandler.cpp \
   /home/user/Documents/c++/DawsonGame/resources/headers/classes.h \
   /home/user/Documents/c++/DawsonGame/resources/headers/glad.h \
   /home/user/Documents/c++/DawsonGame/resources/headers/stb_image.h \
   /usr/include/c++/12/fstream \
   /usr/include/x86_64-linux-gnu/c++/12/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/12/bits/c++io.h \
-  /usr/include/c++/12/bits/fstream.tcc
+  /usr/include/c++/12/bits/fstream.tcc \
+  /home/user/Documents/c++/DawsonGame/src/inputHandler.cpp
 
 CMakeFiles/DawsonGame.dir/src/stb_image.cpp.o: /home/user/Documents/c++/DawsonGame/src/stb_image.cpp \
   /usr/include/stdc-predef.h \

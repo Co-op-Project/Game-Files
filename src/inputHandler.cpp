@@ -70,3 +70,7 @@ struct Debug {
 	bool fullscreen = true;
 	bool mouseLocked = true;
 };
+
+#define held(b) input.buttons[b].is_down
+#define pressed(b) (input.buttons[b].is_down && input.buttons[b].is_changed)
+#define released(b) (!input.buttons[b].is_down && input.buttons[b].is_changed)

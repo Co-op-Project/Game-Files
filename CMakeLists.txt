@@ -28,6 +28,7 @@ include_directories(
     resources/shaders
     resources/fonts
     resources/textures
+    src/
 )
 
 add_subdirectory(resources/libraries/freetype)

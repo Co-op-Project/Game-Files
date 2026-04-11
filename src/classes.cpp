@@ -192,19 +192,20 @@ void frameBuffer::readFrom() {
 Quad::Quad(Quad&& other) noexcept
     : X(other.X), Y(other.Y), width(other.width), height(other.height),
       texture(other.texture), added(other.added), verticesStartIndex(other.verticesStartIndex),
-      render(other.render), sizeRatio(other.sizeRatio),
+      render(other.render), sizeRatio(other.sizeRatio), type(other.type), angle(other.angle),
       texXmin(other.texXmin), texYmin(other.texYmin), model(other.model), preX(other.preX), preY(other.preY)
 {}
 
-Quad::Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio) {
-    updateData(x, y, width, height, texture, render, sizeRatio);
+Quad::Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio,int type) {
+    updateData(x, y, width, height, texture, render, sizeRatio, type);
 }
 
-void Quad::updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio){
+void Quad::updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio, int type){
     bool needsUpdate = false;
     X = x * window_width;
     Y = y * window_height;
     this->render = render;
+    this->type = type;
     if(width * window_height != this->width || height * window_height != this->height || this->texture != texture || this->sizeRatio != sizeRatio) needsUpdate = true;
     if(needsUpdate){
         this->width = width * window_height;
@@ -274,11 +275,24 @@ Quad::Quad(){}
 
 void Quad::draw(Shader &s){
     if(render){
-        if(preX != X || preY != Y){
+        if(preX != X || preY != Y || preAngle != angle){
             preX = X;
             preY = Y;
-            this->model = glm::translate(glm::mat4(1.0f), glm::vec3(X, Y, 0.0f));
+            preAngle = angle;
+            model = glm::mat4(1.0f);
+            switch (type){
+                case STANDARD :{
+                    model = glm::translate(model, glm::vec3(X, Y, 0.0f));
+                } break;
+                case ROTATING :{
+                    model = glm::translate(model, glm::vec3(X, Y, 0.0f));
+                    model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+                } break;
+                default:
+                break;
+            }
         }
+        s.use();
         s.setMat4("model", this->model);
         s.setVec2("texMins", glm::vec2(texXmin, texYmin));
         glDrawArrays(GL_TRIANGLES, verticesStartIndex / 4, 6);
@@ -291,27 +305,45 @@ myGUI::myGUI(float x, float y, float width, float height, bool render, float siz
     this->width = width;
     this->height = height;
     this->render = render;
-    this->sizeRatio = sizeRatio; 
+    this->sizeRatio = sizeRatio;
     updateGUI();
 } 
 
 void myGUI::updateGUI(){
     bool tempRender = width != 0.0f && height != 0.0f && render;
     float tempSizeRatio = sizeRatio * (window_height / startingWindow_height);
-    background.updateData(X, Y, width, height, 996, tempRender, tempSizeRatio);
-    top.updateData(X, Y + height * 0.5f, width, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), 994, tempRender, tempSizeRatio);
-    bottom.updateData(X, Y - height * 0.5f, width, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), 992, tempRender, tempSizeRatio);
-    left.updateData(X - width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), height, 993, tempRender, tempSizeRatio);
-    right.updateData(X + width * 0.5f * (window_height / window_width), Y, (tempSizeRatio / 64.0f) * (startingWindow_height / window_height), height, 995, tempRender, tempSizeRatio);
+    background.updateData(X, Y, width, height, 996, tempRender, tempSizeRatio, STANDARD); 
+    top.updateData(X, relativeY(1.0f), width, relativeWH(tempSizeRatio), 994, tempRender, tempSizeRatio, STANDARD); 
+    bottom.updateData(X, relativeY(0.0f), width, relativeWH(tempSizeRatio), 992, tempRender, tempSizeRatio, STANDARD);
+    left.updateData(relativeX(0.0f), Y, relativeWH(tempSizeRatio), height, 993, tempRender, tempSizeRatio, STANDARD); 
+    right.updateData(relativeX(1.0f), Y, relativeWH(tempSizeRatio), height, 995, tempRender, tempSizeRatio, STANDARD);
+
+    for(int i = 0; i < buttons.size(); i++){
+        buttons[i].background.updateData(relativeX(buttons[i].X), relativeY(buttons[i].Y), width * buttons[i].width, relativeWH(tempSizeRatio), 997, tempRender, tempSizeRatio * 0.375f, STANDARD);
+        buttons[i].left.updateData(relativeX(buttons[i].X - buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 998, tempRender, tempSizeRatio * 0.375f, STANDARD);
+        buttons[i].right.updateData(relativeX(buttons[i].X + buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 999, tempRender, tempSizeRatio * 0.375f, STANDARD);
+    }
+
 }
 
 void myGUI::draw(Shader &s){
+    glBindVertexArray(Quad::VAO);
     background.draw(s);
     top.draw(s);
     bottom.draw(s);
     left.draw(s);
     right.draw(s);
+    for(int i = 0; i < buttons.size(); i++){
+        buttons[i].background.draw(s);
+        buttons[i].left.draw(s);
+        buttons[i].right.draw(s);
+    }
+    for(int i = 0; i < buttons.size(); i++){
+        float textSizeRatio = sizeRatio * (window_height / startingWindow_height) * 0.125f;
+        if(buttons[i].text != "") RenderText(*textShader, buttons[i].text, relativeX(buttons[i].X - buttons[i].width * 0.5f) + relativeWH(textSizeRatio * 1.25f) * (startingWindow_width / window_width) * (window_height / startingWindow_height), relativeY(buttons[i].Y) - relativeWH(textSizeRatio * 1.5f), textSizeRatio * 1.2f * (startingWindow_height / window_height), buttons[i].color);
+    }
 }
+    
 
 void myGUI::toString(){
     top.toString();
@@ -320,3 +352,13 @@ void myGUI::toString(){
     right.toString();
     background.toString();
 }
+
+void myGUI::addButton(float x, float y, float width) { buttons.emplace_back(buttonContainer(x, y, width)); }
+void myGUI::addButton(float x, float y, float width, std::string text, glm::vec3 color) { 
+    buttons.emplace_back(buttonContainer(x, y, width));
+    buttons[buttons.size() - 1].text = text;
+    buttons[buttons.size() - 1].color = color;
+}
+float myGUI::relativeX(float x){ return X + width * (-0.5f + x) * (window_height / window_width); }
+float myGUI::relativeY(float y){ return Y + height * (-0.5f + y); }
+float myGUI::relativeWH(float sizeRatio) { return (sizeRatio / 64.0f) * (startingWindow_height / window_height); }

@@ -32,6 +32,7 @@
 double pi = 3.141592653589793;
 float deltaTime = 0.0f, lastTime = 0.0f, change1 = 0.0f, change2 = 0.0f, change3 = 0.0f, window_width, window_height, startingWindow_width, startingWindow_height;
 glm::mat4 quadProjection = glm::mat4(1.0f);
+glm::mat4 projectionText = glm::mat4(1.0f);
 
 #include "classes.h" //includes inputHandler.cpp
 
@@ -67,7 +68,6 @@ else {\
 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);\
 }\
 
-void RenderText(Shader& s, std::string text, float x, float y, float scale, glm::vec3 color);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -143,7 +143,7 @@ int main(){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Shader text1Shader("../resources/shaders/text.vert", "../resources/shaders/text.frag");
-	glm::mat4 projectionText = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
+	projectionText = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	text1Shader.use();
 	glUniformMatrix4fv(glGetUniformLocation(text1Shader.ID, "projectionText"), 1, GL_FALSE, glm::value_ptr(projectionText));
 
@@ -222,12 +222,24 @@ int main(){
 	glGenVertexArrays(1, &Quad::VAO);
     glGenBuffers(1, &Quad::VBO);
 	std::vector<Quad> quads;
-	quads.emplace_back(Quad(window_width * 0.5f, window_height * 0.5f, 128.0f, 128.0f, 992, true, 4.0f));
-	quads.emplace_back(Quad(window_width * 0.15f, window_height * 0.75f, 150.0f, 300.0f, 993, false, 8.0f));
-	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, 994, false, 2.0f));
+	quads.emplace_back(Quad(window_width * 0.5f, window_height * 0.5f, 128.0f, 128.0f, 992, true, 4.0f, STANDARD));
+	quads.emplace_back(Quad(window_width * 0.15f, window_height * 0.75f, 150.0f, 300.0f, 993, false, 8.0f, STANDARD));
+	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, 994, false, 2.0f, STANDARD));
 
 	std::vector<myGUI> guis;
-	guis.emplace_back(myGUI(0.3f, 0.3f, 0.5f, 0.5f, true, 4.0f));
+	guis.emplace_back(myGUI(0.33f, 0.4f, 0.755f, 0.5f, true, 4.0f));
+	guis[0].textShader = &text1Shader;
+	guis[0].addButton(0.33f, 0.75f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.0f, 1.0f));
+	guis[0].addButton(0.66f, 0.75f, 0.3f, "Can't get enough", glm::vec3(0.0f, 1.0f, 1.0f));
+	guis[0].addButton(0.33f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 1.0f, 0.0f));
+	guis[0].addButton(0.66f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.5f, 0.5f));
+	guis[0].addButton(0.5f, 0.25f, 0.5f);
+
+	/*guis.emplace_back(myGUI(0.66f, 0.6f, 0.3f, 0.7f, true, 2.0f));
+	guis[1].textShader = &text1Shader;
+	guis[1].addButton(0.5f, 0.8f, 0.2f, "Please", glm::vec3(1.0f, 0.0f, 1.0f));
+	guis[1].addButton(0.5f, 0.5f, 0.22f, "Pass the", glm::vec3(0.0f, 1.0f, 0.5f));
+	guis[1].addButton(0.5f, 0.2f, 0.17f, "Peas!", glm::vec3(0.5f, 0.0f, 1.0f));*/
 
 	quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	quadShader.use();
@@ -253,16 +265,10 @@ int main(){
 
 		quadShader.use();
 		quadShader.setMat4("projection", quadProjection);
-		glBindVertexArray(Quad::VAO);
 
 		for(auto& currentQuad : guis){
 			currentQuad.updateGUI();
 			currentQuad.draw(quadShader);
-			//if(quads[0].render) glDrawElements(GL_TRIANGLES, Quad::indices.size(), GL_UNSIGNED_INT, (void*)(uintptr_t)(quads[0].indicesStartIndex * sizeof(unsigned int)));
-/*GLenum err;
-while ((err = glGetError()) != GL_NO_ERROR) {
-    std::cout << "OpenGL error: " << err << std::endl;
-}*/
 		}
 		
     	debugInputs();
@@ -277,6 +283,7 @@ while ((err = glGetError()) != GL_NO_ERROR) {
 		ImGui::SliderFloat("x", &guis[0].X, 0.0f, 1.0f, "%.3f", 0);
 		ImGui::SliderFloat("y", &guis[0].Y, 0.0f, 1.0f, "%.3f", 0);
 		ImGui::SliderFloat("size ratio", &guis[0].sizeRatio, 1.0f, 16.0f, "%.f", 0);
+		ImGui::SliderFloat("change1", &change1, 0.01f, 2.0f, "%.3f", 0);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -296,8 +303,12 @@ while ((err = glGetError()) != GL_NO_ERROR) {
 void RenderText(Shader& s, std::string text, float x, float y, float scale, glm::vec3 color) {
  	//example: RenderText(text1Shader, "FPS: " + std::to_string(debug.FPS), 10.0f, window_height + 10.0f, 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
 	// activate corresponding render state	
+	x *= window_width;
+	y *= window_height;
+	scale *= window_height / startingWindow_height;
 	s.use();
-	glUniform3f(glGetUniformLocation(s.ID, "textColor"), color.x, color.y, color.z);
+	s.setMat4("projectionText", projectionText);
+	s.setVec3("textColor", glm::vec3(color.x, color.y, color.z));
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(textVAO);
 
@@ -341,6 +352,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	window_width = width;
 	window_height = height;
 	quadProjection = glm::ortho(0.0f, float(window_width), 0.0f, float(window_height));
+	projectionText = glm::ortho(0.0f, float(window_width), 0.0f, float(window_height));
 	glViewport(0, 0, width, height);
 }
 

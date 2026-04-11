@@ -8,7 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "inputHandler.cpp"
 
-extern float window_width, window_height, startingWindow_width, startingWindow_height;
+extern float window_width, window_height, startingWindow_width, startingWindow_height, change1, change2, change3, deltaTime;
 extern Input input;
 
 class Shader {
@@ -33,6 +33,8 @@ private:
     void checkCompileErrors(GLuint shader, std::string type);
 };
 
+void RenderText(Shader& s, std::string text, float x, float y, float scale, glm::vec3 color);
+
 class Texture {
 public:
     unsigned int ID;
@@ -52,6 +54,11 @@ private:
     unsigned int frameBufferPrivate, colorAttachment, depthAttachment, width, height;
 };
 
+enum quadType {
+    STANDARD,
+    ROTATING
+};
+
 class Quad {
 public:
 
@@ -59,19 +66,19 @@ Quad(Quad&& other) noexcept;
 Quad(const Quad&) = delete;
 
     static unsigned int VAO, VBO, EBO;
-    float X = 0.0f, Y = 0.0f, width, height, sizeRatio, texXmin, texYmin, preX, preY;
+    float X = 0.0f, Y = 0.0f, width, height, sizeRatio, texXmin, texYmin, preX, preY, rotationX = 0.0f, rotationY = 0.0f, tileSize = 0.0f, angle = 0.0f, preAngle = 0.0f;
     int texture;
     static std::vector<float> vertices;
     bool added = false;
     unsigned int verticesStartIndex;
     bool render = true;
-    float tileSize = 0.0f;
     glm::mat4 model = glm::mat4(1.0f);
+    int type = 0;
 
-    Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio);
+    Quad(float x, float y, float width, float height, int texture, bool render, float sizeRatio, int type);
     Quad();
     void updateVertices();
-    void updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio);
+    void updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio, int type);
     void updateBuffers();
     void toString();
     void draw(Shader &s);
@@ -82,6 +89,17 @@ private:
 
 /*Future child classes  must have: class "child" : public "parent class"
                               and: using "parent"::"parent"; */
+class buttonContainer {
+public:
+    buttonContainer(float x, float y, float width) : X(x), Y(y), width(width) {}
+    Quad left;
+    Quad background;
+    Quad right;
+    float X, Y, width;
+    std::string text = "";
+    glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f);
+};
+
 class myGUI : public Quad {
 public:
     using Quad::Quad;
@@ -91,11 +109,18 @@ public:
     Quad left;
     Quad right;
     Quad background;
+    std::vector<buttonContainer> buttons;
+    Shader *textShader;
 
     myGUI(float x, float y, float width, float height, bool render, float sizeRatio);
     void updateGUI();
     void draw(Shader &s);
     void toString();
+    void addButton(float x, float y, float width);
+    void addButton(float x, float y, float width, std::string text, glm::vec3 color);
+    float relativeX(float x);
+    float relativeY(float y);
+    float relativeWH(float sizeRatio);
 };
 
 #endif

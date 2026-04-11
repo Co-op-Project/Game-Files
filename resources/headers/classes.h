@@ -8,7 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "inputHandler.cpp"
 
-extern float window_width, window_height, startingWindow_width, startingWindow_height, change1, change2, change3, deltaTime;
+extern float window_width, window_height, startingWindow_width, startingWindow_height, change1, change2, change3, deltaTime, lastX, lastY;
 extern Input input;
 
 class Shader {
@@ -82,6 +82,10 @@ Quad(const Quad&) = delete;
     void updateBuffers();
     void toString();
     void draw(Shader &s);
+    float relativeX(float x);
+    float relativeY(float y);
+    float relativeWH(float sizeRatio);
+    bool mouseOver(float x, float y, float width, float height);
     ~Quad();
 
 private:
@@ -89,15 +93,19 @@ private:
 
 /*Future child classes  must have: class "child" : public "parent class"
                               and: using "parent"::"parent"; */
-class buttonContainer {
+class buttonContainer : public Quad{
 public:
-    buttonContainer(float x, float y, float width) : X(x), Y(y), width(width) {}
+    using Quad::Quad;
+
     Quad left;
     Quad background;
     Quad right;
-    float X, Y, width;
     std::string text = "";
     glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f);
+    
+    buttonContainer(float x, float y, float width);
+    bool active();
+
 };
 
 class myGUI : public Quad {
@@ -118,9 +126,6 @@ public:
     void toString();
     void addButton(float x, float y, float width);
     void addButton(float x, float y, float width, std::string text, glm::vec3 color);
-    float relativeX(float x);
-    float relativeY(float y);
-    float relativeWH(float sizeRatio);
 };
 
 #endif

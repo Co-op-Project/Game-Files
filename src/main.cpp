@@ -33,6 +33,8 @@ double pi = 3.141592653589793;
 float deltaTime = 0.0f, lastTime = 0.0f, change1 = 0.0f, change2 = 0.0f, change3 = 0.0f, window_width, window_height, startingWindow_width, startingWindow_height;
 glm::mat4 quadProjection = glm::mat4(1.0f);
 glm::mat4 projectionText = glm::mat4(1.0f);
+float lastX = 800.0f / 2.0f;
+float lastY = 800.0f / 2.0f;
 
 #include "classes.h" //includes inputHandler.cpp
 
@@ -56,10 +58,12 @@ if (held(BUTTON_LEFT_CTRL) && held(BUTTON_LEFTSHIFT) && pressed(BUTTON_P)) {\
 	glfwSetWindowShouldClose(window, GLFW_TRUE);\
 	std::cout << "\nWindow force closed\n";\
 }\
-debug.nextFPScounter += deltaTime;\
-if (debug.nextFPScounter >= 0.8f) {\
-	debug.nextFPScounter = 0.0f;\
+if (debug.nextFPScounter > debug.FPS) {\
+	debug.nextFPScounter = 0;\
 	debug.FPS = static_cast<short>(1.0f / deltaTime);\
+}\
+else {\
+	debug.nextFPScounter++;\
 }\
 if (debug.showWireFrame) {\
 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);\
@@ -84,8 +88,6 @@ struct Character {
 std::map<char, Character> Characters;
 unsigned int textVAO, textVBO;
 
-float lastX = 800.0f / 2.0f;
-float lastY = 800.0f / 2.0f;
 bool firstMouse = true;
 
 int main(){
@@ -230,12 +232,12 @@ int main(){
 	guis.emplace_back(myGUI(0.33f, 0.4f, 0.755f, 0.5f, true, 4.0f));
 	guis[0].textShader = &text1Shader;
 	guis[0].addButton(0.33f, 0.75f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.0f, 1.0f));
-	guis[0].addButton(0.66f, 0.75f, 0.3f, "Can't get enough", glm::vec3(0.0f, 1.0f, 1.0f));
+	/*guis[0].addButton(0.66f, 0.75f, 0.3f, "Can't get enough", glm::vec3(0.0f, 1.0f, 1.0f));
 	guis[0].addButton(0.33f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 1.0f, 0.0f));
 	guis[0].addButton(0.66f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.5f, 0.5f));
 	guis[0].addButton(0.5f, 0.25f, 0.5f);
 
-	/*guis.emplace_back(myGUI(0.66f, 0.6f, 0.3f, 0.7f, true, 2.0f));
+	guis.emplace_back(myGUI(0.66f, 0.6f, 0.3f, 0.7f, true, 2.0f));
 	guis[1].textShader = &text1Shader;
 	guis[1].addButton(0.5f, 0.8f, 0.2f, "Please", glm::vec3(1.0f, 0.0f, 1.0f));
 	guis[1].addButton(0.5f, 0.5f, 0.22f, "Pass the", glm::vec3(0.0f, 1.0f, 0.5f));
@@ -258,10 +260,6 @@ int main(){
     	glfwPollEvents();
 		glClearColor(0.8f, 0.4f, 0.4f, 1.0f);
     	glClear(GL_COLOR_BUFFER_BIT);
-
-		if(pressed(BUTTON_1)){
-			guis[0].toString();
-		}
 
 		quadShader.use();
 		quadShader.setMat4("projection", quadProjection);

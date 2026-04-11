@@ -299,6 +299,17 @@ void Quad::draw(Shader &s){
     }
 }
 
+float Quad::relativeX(float x){ return X + width * (-0.5f + x) * (window_height / window_width); }
+
+float Quad::relativeY(float y){ return Y + height * (-0.5f + y); }
+
+float Quad::relativeWH(float sizeRatio) { return (sizeRatio / 64.0f) * (startingWindow_height / window_height); }
+
+bool Quad::mouseOver(float x, float y, float width, float height){
+    return (lastX > x - width * 0.5f) && (lastX < x + width * 0.5f) && (window_height - lastY > y - height * 0.5f) && (window_height - lastY < y + height * 0.5f);;
+    return false;
+}
+
 myGUI::myGUI(float x, float y, float width, float height, bool render, float sizeRatio) {
     X = x;
     Y = y;
@@ -319,6 +330,7 @@ void myGUI::updateGUI(){
     right.updateData(relativeX(1.0f), Y, relativeWH(tempSizeRatio), height, 995, tempRender, tempSizeRatio, STANDARD);
 
     for(int i = 0; i < buttons.size(); i++){
+        buttons[i].sizeRatio = sizeRatio;
         buttons[i].background.updateData(relativeX(buttons[i].X), relativeY(buttons[i].Y), width * buttons[i].width, relativeWH(tempSizeRatio), 997, tempRender, tempSizeRatio * 0.375f, STANDARD);
         buttons[i].left.updateData(relativeX(buttons[i].X - buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 998, tempRender, tempSizeRatio * 0.375f, STANDARD);
         buttons[i].right.updateData(relativeX(buttons[i].X + buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 999, tempRender, tempSizeRatio * 0.375f, STANDARD);
@@ -340,7 +352,7 @@ void myGUI::draw(Shader &s){
     }
     for(int i = 0; i < buttons.size(); i++){
         float textSizeRatio = sizeRatio * (window_height / startingWindow_height) * 0.125f;
-        if(buttons[i].text != "") RenderText(*textShader, buttons[i].text, relativeX(buttons[i].X - buttons[i].width * 0.5f) + relativeWH(textSizeRatio * 1.25f) * (startingWindow_width / window_width) * (window_height / startingWindow_height), relativeY(buttons[i].Y) - relativeWH(textSizeRatio * 1.5f), textSizeRatio * 1.2f * (startingWindow_height / window_height), buttons[i].color);
+        if(buttons[i].text != "" && buttons[i].active()) RenderText(*textShader, buttons[i].text, relativeX(buttons[i].X - buttons[i].width * 0.5f) + relativeWH(textSizeRatio * 1.25f) * (startingWindow_width / window_width) * (window_height / startingWindow_height), relativeY(buttons[i].Y) - relativeWH(textSizeRatio * 1.5f), textSizeRatio * 1.2f * (startingWindow_height / window_height), buttons[i].color);
     }
 }
     
@@ -354,11 +366,19 @@ void myGUI::toString(){
 }
 
 void myGUI::addButton(float x, float y, float width) { buttons.emplace_back(buttonContainer(x, y, width)); }
+
 void myGUI::addButton(float x, float y, float width, std::string text, glm::vec3 color) { 
     buttons.emplace_back(buttonContainer(x, y, width));
     buttons[buttons.size() - 1].text = text;
     buttons[buttons.size() - 1].color = color;
 }
-float myGUI::relativeX(float x){ return X + width * (-0.5f + x) * (window_height / window_width); }
-float myGUI::relativeY(float y){ return Y + height * (-0.5f + y); }
-float myGUI::relativeWH(float sizeRatio) { return (sizeRatio / 64.0f) * (startingWindow_height / window_height); }
+
+buttonContainer::buttonContainer(float x, float y, float width){
+    X=x;
+    Y=y;
+    this->width = width;
+}
+
+bool buttonContainer::active(){
+    return held(MOUSE_LEFT) && mouseOver(background.X, background.Y, background.width, window_height * relativeWH(sizeRatio * (window_height / startingWindow_height)));
+}

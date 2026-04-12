@@ -231,7 +231,7 @@ int main(){
 	std::vector<myGUI> guis;
 	guis.emplace_back(myGUI(0.33f, 0.4f, 0.755f, 0.5f, true, 4.0f));
 	guis[0].textShader = &text1Shader;
-	guis[0].addButton(0.33f, 0.75f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.0f, 1.0f));
+	guis[0].addButton(0.33f, 0.75f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.0f, 1.0f), 997);
 	/*guis[0].addButton(0.66f, 0.75f, 0.3f, "Can't get enough", glm::vec3(0.0f, 1.0f, 1.0f));
 	guis[0].addButton(0.33f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 1.0f, 0.0f));
 	guis[0].addButton(0.66f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.5f, 0.5f));

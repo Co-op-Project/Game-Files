@@ -331,7 +331,7 @@ void myGUI::updateGUI(){
 
     for(int i = 0; i < buttons.size(); i++){
         buttons[i].sizeRatio = sizeRatio;
-        buttons[i].background.updateData(relativeX(buttons[i].X), relativeY(buttons[i].Y), width * buttons[i].width, relativeWH(tempSizeRatio), 997, tempRender, tempSizeRatio * 0.375f, STANDARD);
+        buttons[i].background.updateData(relativeX(buttons[i].X), relativeY(buttons[i].Y), width * buttons[i].width, relativeWH(tempSizeRatio), buttons[i].texture, tempRender, tempSizeRatio * 0.375f, STANDARD);
         buttons[i].left.updateData(relativeX(buttons[i].X - buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 998, tempRender, tempSizeRatio * 0.375f, STANDARD);
         buttons[i].right.updateData(relativeX(buttons[i].X + buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 999, tempRender, tempSizeRatio * 0.375f, STANDARD);
     }
@@ -352,7 +352,7 @@ void myGUI::draw(Shader &s){
     }
     for(int i = 0; i < buttons.size(); i++){
         float textSizeRatio = sizeRatio * (window_height / startingWindow_height) * 0.125f;
-        if(buttons[i].text != "" && buttons[i].active()) RenderText(*textShader, buttons[i].text, relativeX(buttons[i].X - buttons[i].width * 0.5f) + relativeWH(textSizeRatio * 1.25f) * (startingWindow_width / window_width) * (window_height / startingWindow_height), relativeY(buttons[i].Y) - relativeWH(textSizeRatio * 1.5f), textSizeRatio * 1.2f * (startingWindow_height / window_height), buttons[i].color);
+        if(render && buttons[i].text != "" && buttons[i].active()) RenderText(*textShader, buttons[i].text, relativeX(buttons[i].X - buttons[i].width * 0.5f) + relativeWH(textSizeRatio * 1.25f) * (startingWindow_width / window_width) * (window_height / startingWindow_height), relativeY(buttons[i].Y) - relativeWH(textSizeRatio * 1.5f), textSizeRatio * 1.2f * (startingWindow_height / window_height), buttons[i].color);
     }
 }
     
@@ -365,12 +365,16 @@ void myGUI::toString(){
     background.toString();
 }
 
-void myGUI::addButton(float x, float y, float width) { buttons.emplace_back(buttonContainer(x, y, width)); }
+void myGUI::addButton(float x, float y, float width, short int texture) { 
+    buttons.emplace_back(buttonContainer(x, y, width));
+    buttons[buttons.size() - 1].texture = texture;
+}
 
-void myGUI::addButton(float x, float y, float width, std::string text, glm::vec3 color) { 
+void myGUI::addButton(float x, float y, float width, std::string text, glm::vec3 color, short int texture) { 
     buttons.emplace_back(buttonContainer(x, y, width));
     buttons[buttons.size() - 1].text = text;
     buttons[buttons.size() - 1].color = color;
+    buttons[buttons.size() - 1].texture = texture;
 }
 
 buttonContainer::buttonContainer(float x, float y, float width){

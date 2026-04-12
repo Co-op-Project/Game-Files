@@ -102,6 +102,7 @@ public:
     Quad right;
     std::string text = "";
     glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f);
+    short int texture;
     
     buttonContainer(float x, float y, float width);
     bool active();
@@ -124,8 +125,8 @@ public:
     void updateGUI();
     void draw(Shader &s);
     void toString();
-    void addButton(float x, float y, float width);
-    void addButton(float x, float y, float width, std::string text, glm::vec3 color);
+    void addButton(float x, float y, float width, short int texture);
+    void addButton(float x, float y, float width, std::string text, glm::vec3 color, short int texture);
 };
 
 #endif

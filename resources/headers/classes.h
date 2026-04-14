@@ -93,6 +93,14 @@ private:
 
 /*Future child classes  must have: class "child" : public "parent class"
                               and: using "parent"::"parent"; */
+enum callbacks {
+    NOARGS,
+    INT,
+    GUI
+};
+
+class myGUI;
+
 class buttonContainer : public Quad{
 public:
     using Quad::Quad;
@@ -103,9 +111,19 @@ public:
     std::string text = "";
     glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f);
     short int texture;
+    short int status = 0;
+    float counter = 0.0f;
+    short int callbackID = NOARGS;
+    
+    std::function<void()> callBack = [](){};
+    std::function<void(int x)> callBackInt = [](int x){};
+    std::function<void(myGUI* gui)> callBackGUI = [](myGUI* gui){};
     
     buttonContainer(float x, float y, float width);
-    bool active();
+    void setCallback(std::function<void()> func);
+    void setCallback(std::function<void(int x)> func);
+    void setCallback(std::function<void(myGUI* gui)> func);
+    bool over();
 
 };
 
@@ -127,6 +145,14 @@ public:
     void toString();
     void addButton(float x, float y, float width, short int texture);
     void addButton(float x, float y, float width, std::string text, glm::vec3 color, short int texture);
+};
+
+class Projectile : public Quad {
+public:
+    using Quad::Quad;
+
+    Projectile(float x, float y, bool render);
+
 };
 
 #endif

@@ -352,7 +352,30 @@ void myGUI::draw(Shader &s){
     }
     for(int i = 0; i < buttons.size(); i++){
         float textSizeRatio = sizeRatio * (window_height / startingWindow_height) * 0.125f;
-        if(render && buttons[i].text != "" && buttons[i].active()) RenderText(*textShader, buttons[i].text, relativeX(buttons[i].X - buttons[i].width * 0.5f) + relativeWH(textSizeRatio * 1.25f) * (startingWindow_width / window_width) * (window_height / startingWindow_height), relativeY(buttons[i].Y) - relativeWH(textSizeRatio * 1.5f), textSizeRatio * 1.2f * (startingWindow_height / window_height), buttons[i].color);
+        if(buttons[i].over() && !held(MOUSE_LEFT)) buttons[i].status = 1;
+        if(buttons[i].status == 1){
+            buttons[i].counter += deltaTime;
+            if(buttons[i].counter > 0.01f){
+                buttons[i].counter = 0.0f;
+                if(buttons[i].over() && !held(MOUSE_LEFT)){
+                    buttons[i].status = 1;
+                }else{
+                    buttons[i].status = 0;
+                }
+            }
+        }
+        if(buttons[i].status == 1 && held(MOUSE_LEFT) && buttons[i].over()){
+            switch(buttons[i].callbackID){
+                case(NOARGS): buttons[i].callBack(); break;
+                case(INT): buttons[i].callBackInt(1); break;
+                case(GUI): buttons[i].callBackGUI(this); break;
+
+            default: break;
+            }
+            buttons[i].status = 2;
+        }
+
+        if(render && buttons[i].text != "") RenderText(*textShader, buttons[i].text, relativeX(buttons[i].X - buttons[i].width * 0.5f) + relativeWH(textSizeRatio * 1.25f) * (startingWindow_width / window_width) * (window_height / startingWindow_height), relativeY(buttons[i].Y) - relativeWH(textSizeRatio * 1.5f), textSizeRatio * 1.2f * (startingWindow_height / window_height), buttons[i].color);
     }
 }
     
@@ -383,6 +406,27 @@ buttonContainer::buttonContainer(float x, float y, float width){
     this->width = width;
 }
 
-bool buttonContainer::active(){
-    return held(MOUSE_LEFT) && mouseOver(background.X, background.Y, background.width, window_height * relativeWH(sizeRatio * (window_height / startingWindow_height)));
+bool buttonContainer::over(){
+    return mouseOver(background.X, background.Y, background.width, window_height * relativeWH(sizeRatio * (window_height / startingWindow_height)));
+}
+
+void buttonContainer::setCallback(std::function<void()> func){
+    this->callBack = func;
+    callbackID = NOARGS;
+}
+
+void buttonContainer::setCallback(std::function<void(int x)> func){
+    this->callBackInt = func;
+    callbackID = INT;
+}
+
+void buttonContainer::setCallback(std::function<void(myGUI* gui)> func){
+    this->callBackGUI = func;
+    callbackID = GUI;
+}
+
+Projectile::Projectile(float x, float y, bool render){
+    X=x;
+    Y=y;
+    this->render = render;
 }

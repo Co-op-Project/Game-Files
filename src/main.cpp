@@ -223,25 +223,24 @@ int main(){
 	Shader quadShader("../resources/shaders/quad.vert", "../resources/shaders/quad.frag");
 	glGenVertexArrays(1, &Quad::VAO);
     glGenBuffers(1, &Quad::VBO);
-	std::vector<Quad> quads;
-	quads.emplace_back(Quad(window_width * 0.5f, window_height * 0.5f, 128.0f, 128.0f, 992, true, 4.0f, STANDARD));
-	quads.emplace_back(Quad(window_width * 0.15f, window_height * 0.75f, 150.0f, 300.0f, 993, false, 8.0f, STANDARD));
-	quads.emplace_back(Quad(window_width * 0.35f, window_height * 0.6f, 350.0f, 250.0f, 994, false, 2.0f, STANDARD));
 
-	std::vector<myGUI> guis;
+	/*std::vector<myGUI> guis;
 	guis.emplace_back(myGUI(0.33f, 0.4f, 0.755f, 0.5f, true, 4.0f));
 	guis[0].textShader = &text1Shader;
-	guis[0].addButton(0.33f, 0.75f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.0f, 1.0f), 997);
-	/*guis[0].addButton(0.66f, 0.75f, 0.3f, "Can't get enough", glm::vec3(0.0f, 1.0f, 1.0f));
-	guis[0].addButton(0.33f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 1.0f, 0.0f));
-	guis[0].addButton(0.66f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.5f, 0.5f));
-	guis[0].addButton(0.5f, 0.25f, 0.5f);
+	guis[0].addButton(0.33f, 0.75f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.0f, 1.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](){
+		std::cout << "noArgs0" << std::endl;
+	});
 
-	guis.emplace_back(myGUI(0.66f, 0.6f, 0.3f, 0.7f, true, 2.0f));
-	guis[1].textShader = &text1Shader;
-	guis[1].addButton(0.5f, 0.8f, 0.2f, "Please", glm::vec3(1.0f, 0.0f, 1.0f));
-	guis[1].addButton(0.5f, 0.5f, 0.22f, "Pass the", glm::vec3(0.0f, 1.0f, 0.5f));
-	guis[1].addButton(0.5f, 0.2f, 0.17f, "Peas!", glm::vec3(0.5f, 0.0f, 1.0f));*/
+	guis[0].addButton(0.66f, 0.75f, 0.3f, "Can't get enough", glm::vec3(0.0f, 1.0f, 1.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](int x){
+		std::cout << "int arg: " << x << std::endl;
+	});
+
+	guis[0].addButton(0.33f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 1.0f, 0.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](myGUI* gui){
+		gui->buttons[4].text = "Boy u odindin done";
+	});*/
+
+	std::vector<Projectile> projectiles;
+	projectiles.emplace_back(Projectile(0.5f, 0.5f, true));
 
 	quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	quadShader.use();
@@ -264,8 +263,7 @@ int main(){
 		quadShader.use();
 		quadShader.setMat4("projection", quadProjection);
 
-		for(auto& currentQuad : guis){
-			currentQuad.updateGUI();
+		for(auto& currentQuad : projectiles){
 			currentQuad.draw(quadShader);
 		}
 		
@@ -276,11 +274,8 @@ int main(){
 		ImGui::NewFrame();
 		ImGui::Begin("ImGui window");
 		ImGui::Text("FPS: = %i", debug.FPS);
-		ImGui::SliderFloat("height", &guis[0].height, 0.0f, 1.0f, "%.3f", 0);
-		ImGui::SliderFloat("width", &guis[0].width, 0.0f, 1.0f, "%.3f", 0);
-		ImGui::SliderFloat("x", &guis[0].X, 0.0f, 1.0f, "%.3f", 0);
-		ImGui::SliderFloat("y", &guis[0].Y, 0.0f, 1.0f, "%.3f", 0);
-		ImGui::SliderFloat("size ratio", &guis[0].sizeRatio, 1.0f, 16.0f, "%.f", 0);
+		ImGui::SliderFloat("x", &projectiles[0].X, 0.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("y", &projectiles[0].Y, 0.0f, 1.0f, "%.3f", 0);
 		ImGui::SliderFloat("change1", &change1, 0.01f, 2.0f, "%.3f", 0);
 		ImGui::End();
 		ImGui::Render();

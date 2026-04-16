@@ -240,7 +240,13 @@ int main(){
 	});*/
 
 	std::vector<Projectile> projectiles;
-	projectiles.emplace_back(Projectile(0.5f, 0.5f, true));
+	
+	for(int i = 0; i < 10000; i++){
+		projectiles.emplace_back(Projectile(0.0001f * i, 0.5f, 1000, 1.0f, true));
+		projectiles[i].friction = glm::vec2(0.16f, 0.16f);
+		projectiles[i].As.push_back(glm::vec2(-0.5f + i * 0.0001f, -0.5f + i * 0.0001f));
+		projectiles[i].As.push_back(glm::vec2(0.0f, 0.0f));
+	}
 
 	quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	quadShader.use();
@@ -251,37 +257,43 @@ int main(){
     	for (int i = 0; i < BUTTON_COUNT; i++) {
     	    input.buttons[i].is_changed = false;
     	}
-
-    	float currentTime = float(glfwGetTime());
+		float currentTime = float(glfwGetTime());
     	deltaTime = currentTime - lastTime;
     	lastTime = currentTime;
 
     	glfwPollEvents();
-		glClearColor(0.8f, 0.4f, 0.4f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
     	glClear(GL_COLOR_BUFFER_BIT);
 
+	//if(pressed(BUTTON_C)){
 		quadShader.use();
 		quadShader.setMat4("projection", quadProjection);
 
-		for(auto& currentQuad : projectiles){
-			currentQuad.draw(quadShader);
+		for(auto& current : projectiles){
+			float tempAngle = current.pointTowards(lastX, window_height - lastY, false);
+			current.As[1] = current.dirScalar(1.5f, tempAngle);
+			current.update();
+			current.draw(quadShader);
 		}
 		
-    	debugInputs();
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::Begin("ImGui window");
 		ImGui::Text("FPS: = %i", debug.FPS);
-		ImGui::SliderFloat("x", &projectiles[0].X, 0.0f, 1.0f, "%.3f", 0);
-		ImGui::SliderFloat("y", &projectiles[0].Y, 0.0f, 1.0f, "%.3f", 0);
-		ImGui::SliderFloat("change1", &change1, 0.01f, 2.0f, "%.3f", 0);
+		ImGui::SliderFloat("x", &projectiles[0].Xp, 0.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("y", &projectiles[0].Yp, 0.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("angle", &projectiles[0].angle, 0.0f, 6.282f, "%.3f", 0);
+		ImGui::SliderFloat("acceleration", &projectiles[0].A.x, -1.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("change1", &change1, 0.01f, 3.0f, "%.3f", 0);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     	glfwSwapBuffers(window);
+	//}
+	debugInputs();
 	}
 
 	glDeleteVertexArrays(1, &Quad::VAO);

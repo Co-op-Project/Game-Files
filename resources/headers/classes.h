@@ -56,7 +56,8 @@ private:
 
 enum quadType {
     STANDARD,
-    ROTATING
+    ROTATING,
+    PROJECTILE
 };
 
 class Quad {
@@ -151,8 +152,15 @@ class Projectile : public Quad {
 public:
     using Quad::Quad;
 
-    Projectile(float x, float y, bool render);
+    float Xp = 0.5f, Yp = 0.5f, scale = 1.0f;
+    glm::vec2 V = glm::vec2(0.0f), A = glm::vec2(0.0f), friction = glm::vec2(0.0f);
+    std::vector<glm::vec2> As;
 
+    Projectile(float x, float y, short int texture, float scale, bool render);
+    void update();
+    void move();
+    float pointTowards(float x, float y, bool percentage);
+    glm::vec2 dirScalar(float mag, float dir);
 };
 
 #endif

@@ -288,6 +288,10 @@ void Quad::draw(Shader &s){
                     model = glm::translate(model, glm::vec3(X, Y, 0.0f));
                     model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
                 } break;
+                case PROJECTILE :{
+                    model = glm::translate(model, glm::vec3(X, Y, 0.0f));
+                    model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+                } break;
                 default:
                 break;
             }
@@ -425,8 +429,57 @@ void buttonContainer::setCallback(std::function<void(myGUI* gui)> func){
     callbackID = GUI;
 }
 
-Projectile::Projectile(float x, float y, bool render){
-    X=x;
-    Y=y;
+Projectile::Projectile(float x, float y, short int texture, float scale, bool render){
+    Xp=x;
+    Yp=y;
     this->render = render;
+    this->texture = texture;
+    this->scale = scale;
+    type = STANDARD;
+}
+
+void Projectile::update(){
+    float tempSizeRatio = 4.0f * scale * (window_height / startingWindow_height);
+    move();
+    updateData(Xp, Yp, relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), texture, render, tempSizeRatio / 2.67f, PROJECTILE);
+}
+
+void Projectile::move(){
+    Xp += V.x * deltaTime;
+    Yp += V.y * deltaTime;
+    A = glm::vec2(0.0f);
+    for(glm::vec2 a : As) A += a;
+    if(V.x != 0.0f){
+        if(V.x > 0){
+            A.x -= friction.x;
+            if(V.x < 0) V.x = 0.0f;
+        }else{
+            A.x += friction.x;
+            if(V.x > 0) V.x = 0.0f;
+        }
+    }
+    if(V.y != 0.0f){
+        if(V.y > 0){
+            A.y -= friction.y;
+            if(V.y < 0) V.y = 0.0f;
+        }else{
+            A.y += friction.y;
+            if(V.y > 0) V.y = 0.0f;
+        }
+    }
+
+    V += A * deltaTime;
+}
+
+float Projectile::pointTowards(float x, float y, bool percentage){
+    float targetX = percentage ? x * window_width : x;
+    float targetY = percentage ? y * window_height : y;
+    float deltaX = targetX - X;
+    float deltaY = targetY - Y;
+    angle = glm::atan(deltaY, deltaX);
+    return angle;
+}
+
+glm::vec2 Projectile::dirScalar(float mag, float dir){
+    return glm::vec2(mag * glm::cos(dir), mag * glm::sin(dir));
 }

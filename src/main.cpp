@@ -241,10 +241,10 @@ int main(){
 
 	std::vector<Projectile> projectiles;
 	
-	for(int i = 0; i < 100; i++){
-		projectiles.emplace_back(Projectile(0.01f * i, 0.5f, 1000, 1.0f, true));
+	for(int i = 0; i < 10000; i++){
+		projectiles.emplace_back(Projectile(0.0001f * i, 0.5f, 1000, 1.0f, true));
 		projectiles[i].friction = glm::vec2(0.16f, 0.16f);
-		projectiles[i].As.push_back(glm::vec2(-0.5f + i * 0.01f, -0.5f + i * 0.01f));
+		projectiles[i].As.push_back(glm::vec2(-0.5f + i * 0.0001f, -0.5f + i * 0.0001f));
 		projectiles[i].As.push_back(glm::vec2(0.0f, 0.0f));
 		projectiles[i].As.push_back(glm::vec2(0.0f, 0.0f));
 	}
@@ -282,9 +282,12 @@ int main(){
 		quadShader.setMat4("projection", quadProjection);
 
 		for(auto& current : projectiles){
-			float tempAngle = current.pointTowards(lastX, window_height - lastY, false);
+			float tempAngle = current.pointTowards(lastX, (window_height - lastY), false);
 			current.As[1] = current.dirScalar(1.5f, tempAngle);
 			current.update();
+			if(held(BUTTON_C)){
+				for(int i = 0; i < 3; i++) current.update();
+			}
 			current.draw(quadShader);
 		}
 

@@ -8,7 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "inputHandler.cpp"
 
-extern float window_width, window_height, startingWindow_width, startingWindow_height, change1, change2, change3, deltaTime, lastX, lastY;
+extern float window_width, window_height, startingWindow_width, startingWindow_height, change1, change2, change3, deltaTime, lastX, lastY, zoom;
 extern Input input;
 
 class Shader {

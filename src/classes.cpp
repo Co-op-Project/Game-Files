@@ -472,8 +472,8 @@ void Projectile::move(){
 }
 
 float Projectile::pointTowards(float x, float y, bool percentage){
-    float targetX = percentage ? x * window_width : x;
-    float targetY = percentage ? y * window_height : y;
+    float targetX = percentage ? x * window_width * (zoom - 1.0f) : x;
+    float targetY = percentage ? y * window_height * (zoom - 1.0f) : y;
     float deltaX = targetX - X;
     float deltaY = targetY - Y;
     angle = glm::atan(deltaY, deltaX);

@@ -30,7 +30,7 @@
 #include FT_FREETYPE_H
 
 double pi = 3.141592653589793;
-float deltaTime = 0.0f, lastTime = 0.0f, change1 = 0.0f, change2 = 0.0f, change3 = 0.0f, window_width, window_height, startingWindow_width, startingWindow_height;
+float deltaTime = 0.0f, lastTime = 0.0f, change1 = 0.0f, change2 = 0.0f, change3 = 0.0f, window_width, window_height, startingWindow_width, startingWindow_height, zoom = 2.0f;
 glm::mat4 quadProjection = glm::mat4(1.0f);
 glm::mat4 projectionText = glm::mat4(1.0f);
 float lastX = 800.0f / 2.0f;
@@ -241,10 +241,11 @@ int main(){
 
 	std::vector<Projectile> projectiles;
 	
-	for(int i = 0; i < 10000; i++){
-		projectiles.emplace_back(Projectile(0.0001f * i, 0.5f, 1000, 1.0f, true));
+	for(int i = 0; i < 100; i++){
+		projectiles.emplace_back(Projectile(0.01f * i, 0.5f, 1000, 1.0f, true));
 		projectiles[i].friction = glm::vec2(0.16f, 0.16f);
-		projectiles[i].As.push_back(glm::vec2(-0.5f + i * 0.0001f, -0.5f + i * 0.0001f));
+		projectiles[i].As.push_back(glm::vec2(-0.5f + i * 0.01f, -0.5f + i * 0.01f));
+		projectiles[i].As.push_back(glm::vec2(0.0f, 0.0f));
 		projectiles[i].As.push_back(glm::vec2(0.0f, 0.0f));
 	}
 
@@ -265,7 +266,18 @@ int main(){
 		glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
     	glClear(GL_COLOR_BUFFER_BIT);
 
-	//if(pressed(BUTTON_C)){
+		if(held(BUTTON_MINUS)){
+			zoom += 0.5f * deltaTime;
+			quadProjection = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
+			projectionText = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
+		}
+		if(held(BUTTON_PLUS)){
+			zoom -= 0.5f * deltaTime;
+			if(zoom <= 1.0f) zoom = 1.001f;
+			quadProjection = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
+			projectionText = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
+		}
+
 		quadShader.use();
 		quadShader.setMat4("projection", quadProjection);
 
@@ -275,13 +287,12 @@ int main(){
 			current.update();
 			current.draw(quadShader);
 		}
-		
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::Begin("ImGui window");
-		ImGui::Text("FPS: = %i", debug.FPS);
+		ImGui::Text("FPS: = %i  Zoom: = %f", debug.FPS, zoom);
 		ImGui::SliderFloat("x", &projectiles[0].Xp, 0.0f, 1.0f, "%.3f", 0);
 		ImGui::SliderFloat("y", &projectiles[0].Yp, 0.0f, 1.0f, "%.3f", 0);
 		ImGui::SliderFloat("angle", &projectiles[0].angle, 0.0f, 6.282f, "%.3f", 0);
@@ -292,8 +303,7 @@ int main(){
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     	glfwSwapBuffers(window);
-	//}
-	debugInputs();
+		debugInputs();
 	}
 
 	glDeleteVertexArrays(1, &Quad::VAO);
@@ -356,8 +366,8 @@ void RenderText(Shader& s, std::string text, float x, float y, float scale, glm:
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	window_width = width;
 	window_height = height;
-	quadProjection = glm::ortho(0.0f, float(window_width), 0.0f, float(window_height));
-	projectionText = glm::ortho(0.0f, float(window_width), 0.0f, float(window_height));
+	quadProjection = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
+			projectionText = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
 	glViewport(0, 0, width, height);
 }
 
@@ -418,6 +428,8 @@ input.buttons[b].is_down = bool(action);\
 		process_button(BUTTON_RIGHT, 262);
 		process_button(BUTTON_UP, 265);
 		process_button(BUTTON_DOWN, 264);
+		process_button(BUTTON_MINUS, 45);
+		process_button(BUTTON_PLUS, 61);
 	default:
 		break;
 	}

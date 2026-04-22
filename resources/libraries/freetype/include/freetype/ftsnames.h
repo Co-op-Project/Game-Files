@@ -96,7 +96,7 @@ FT_BEGIN_HEADER
    *   string ::
    *     The 'name' string.  Note that its format differs depending on the
    *     (platform,encoding) pair, being either a string of bytes (without a
-   *     terminating `NULL` byte) or containing UTF-16BE entities.
+   *     terminating `NULL` byte) or containing UTF-16BE projectiles.
    *
    *   string_len ::
    *     The length of `string` in bytes.

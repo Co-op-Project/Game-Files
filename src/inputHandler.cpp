@@ -71,6 +71,7 @@ struct Debug {
 	short int FPS = 0;
 	bool fullscreen = true;
 	bool mouseLocked = true;
+	bool showHitboxes = true;
 };
 
 #define held(b) input.buttons[b].is_down

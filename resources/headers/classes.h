@@ -10,6 +10,7 @@
 
 extern float window_width, window_height, startingWindow_width, startingWindow_height, change1, change2, change3, deltaTime, lastX, lastY, zoom;
 extern Input input;
+extern Debug debug;
 
 class Shader {
 public:
@@ -56,8 +57,7 @@ private:
 
 enum quadType {
     STANDARD,
-    ROTATING,
-    PROJECTILE
+    ENTITY
 };
 
 class Quad {
@@ -67,7 +67,7 @@ Quad(Quad&& other) noexcept;
 Quad(const Quad&) = delete;
 
     static unsigned int VAO, VBO, EBO;
-    float X = 0.0f, Y = 0.0f, width, height, sizeRatio, texXmin, texYmin, preX, preY, rotationX = 0.0f, rotationY = 0.0f, tileSize = 0.0f, angle = 0.0f, preAngle = 0.0f;
+    float X = 0.0f, Y = 0.0f, width, height, sizeRatio, texXmin, texYmin, preX, preY, tileSize = 0.0f, angle = 0.0f, preAngle = 0.0f;
     int texture;
     static std::vector<float> vertices;
     bool added = false;
@@ -148,19 +148,49 @@ public:
     void addButton(float x, float y, float width, std::string text, glm::vec3 color, short int texture);
 };
 
-class Projectile : public Quad {
+class Entity : public Quad {
 public:
     using Quad::Quad;
+    Entity(Entity&&) noexcept = default;
+    Entity& operator=(Entity&&) noexcept = default;
 
     float Xp = 0.5f, Yp = 0.5f, scale = 1.0f;
     glm::vec2 V = glm::vec2(0.0f), A = glm::vec2(0.0f), friction = glm::vec2(0.0f);
     std::vector<glm::vec2> As;
 
-    Projectile(float x, float y, short int texture, float scale, bool render);
+    Entity(float x, float y, short int texture, float scale, bool render);
     void update();
     void move();
     float pointTowards(float x, float y, bool percentage);
     glm::vec2 dirScalar(float mag, float dir);
+};
+
+class Hitbox : public Quad {
+public:
+    using Quad::Quad;
+
+    bool AABB = true;
+    float hitboxWidth = 1.0f, hitboxHeight = 1.0f;
+    glm::vec2 normals[4];
+    glm::vec2 SATvertices[4];
+    Hitbox();
+    void updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio, int type);
+    void updateSAT();
+    bool colliding(Hitbox &object1, Hitbox &object2);
+};
+
+class Projectile : public Entity {
+public:
+    Projectile(Projectile&&) noexcept = default;
+    Projectile& operator=(Projectile&&) noexcept = default;
+
+    Hitbox hitbox;
+
+    float elasticity = 1.0f, mass = 1.0f;
+
+    Projectile(float x, float y, short int texture, float scale, bool render, bool AABB);
+    void update();
+    void draw(Shader &s);
 };
 
 #endif

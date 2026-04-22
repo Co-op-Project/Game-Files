@@ -1087,7 +1087,7 @@
 
 #define GX_VALUE_SIZE  8
 
-  /* all values are FT_Short or FT_UShort entities; */
+  /* all values are FT_Short or FT_UShort projectiles; */
   /* we treat them consistently as FT_Short         */
 #define GX_VALUE_CASE( tag, dflt )      \
           case MVAR_TAG_ ## tag :       \

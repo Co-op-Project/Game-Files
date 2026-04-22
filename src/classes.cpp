@@ -7,6 +7,7 @@ unsigned int Quad::VAO = 0;
 unsigned int Quad::VBO = 0;
 std::vector<float> Quad::vertices;
 
+
 //Shader implementation
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
     std::string vertexCode;
@@ -284,11 +285,7 @@ void Quad::draw(Shader &s){
                 case STANDARD :{
                     model = glm::translate(model, glm::vec3(X, Y, 0.0f));
                 } break;
-                case ROTATING :{
-                    model = glm::translate(model, glm::vec3(X, Y, 0.0f));
-                    model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-                } break;
-                case PROJECTILE :{
+                case ENTITY :{
                     model = glm::translate(model, glm::vec3(X, Y, 0.0f));
                     model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
                 } break;
@@ -429,22 +426,24 @@ void buttonContainer::setCallback(std::function<void(myGUI* gui)> func){
     callbackID = GUI;
 }
 
-Projectile::Projectile(float x, float y, short int texture, float scale, bool render){
+Entity::Entity(float x, float y, short int texture, float scale, bool render){
     Xp=x;
     Yp=y;
     this->render = render;
     this->texture = texture;
     this->scale = scale;
-    type = STANDARD;
+    type = ENTITY;
 }
 
-void Projectile::update(){
+void Entity::update(){
     float tempSizeRatio = 4.0f * scale * (window_height / startingWindow_height);
-    move();
-    updateData(Xp, Yp, relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), texture, render, tempSizeRatio / 2.67f, PROJECTILE);
+    for(int i = 0; i < 4; i++){
+        move();
+        updateData(Xp, Yp, relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), texture, render, tempSizeRatio / 2.67f, ENTITY);
+    }
 }
 
-void Projectile::move(){
+void Entity::move(){
     Xp += V.x * deltaTime;
     Yp += V.y * deltaTime;
     A = glm::vec2(0.0f);
@@ -471,7 +470,7 @@ void Projectile::move(){
     V += A * deltaTime;
 }
 
-float Projectile::pointTowards(float x, float y, bool percentage){
+float Entity::pointTowards(float x, float y, bool percentage){
     float targetX, targetY;
     if (percentage) {
         x *= window_width;
@@ -490,6 +489,97 @@ float Projectile::pointTowards(float x, float y, bool percentage){
     return angle;
 }
 
-glm::vec2 Projectile::dirScalar(float mag, float dir){
+glm::vec2 Entity::dirScalar(float mag, float dir){
     return glm::vec2(mag * glm::cos(dir), mag * glm::sin(dir));
+}
+
+Projectile::Projectile(float x, float y, short int texture, float scale, bool render, bool AABB){
+    Xp=x;
+    Yp=y;
+    this->render = render;
+    this->texture = texture;
+    this->scale = scale;
+    hitbox.hitboxWidth = 1.0f * scale;
+    hitbox.hitboxHeight = 1.0f * scale;
+    hitbox.AABB = AABB;
+    type = ENTITY;
+    hitbox.type = STANDARD;
+    this->update();
+    hitbox.updateSAT();
+}
+
+void Projectile::update(){
+    this->Entity::update();
+    hitbox.AABB ? hitbox.angle = 0 : hitbox.angle = angle;
+    hitbox.updateData(Xp, Yp, (width / window_height) * hitbox.hitboxWidth, (height / window_height) * hitbox.hitboxHeight, 1001, debug.showHitboxes, 1, hitbox.AABB ? STANDARD : ENTITY);
+}
+
+void Projectile::draw(Shader &s){
+    this->Quad::draw(s);
+    hitbox.draw(s);
+}
+
+Hitbox::Hitbox(){}
+
+void Hitbox::updateSAT(){
+    float cosA = cos(angle);
+    float sinA = sin(angle);
+    glm::mat2 rot2D = glm::mat2(cosA, sinA, -sinA, cosA);
+    glm::vec2 center(X, Y);
+    glm::vec2 corners[4] = {
+        {-this->width * 0.5f, -this->height * 0.5f},
+        { this->width * 0.5f, -this->height * 0.5f},
+        { this->width * 0.5f,  this->height * 0.5f},
+        {-this->width * 0.5f,  this->height * 0.5f}
+    };
+    for(int i = 0; i < 4; i++){
+        SATvertices[i] = center + rot2D * corners[i];
+    }
+    glm::vec2 edges[4];
+    for(int i = 0; i < 4; i++){
+        glm::vec2 e = SATvertices[(i+1) % 4] - SATvertices[i];
+        float mag = glm::length(e);
+        normals[i] = glm::vec2(-e.y / mag, e.x / mag);
+    }
+}
+
+void Hitbox::updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio, int type){
+    Quad::updateData(x, y, width, height, texture, render, sizeRatio, type);
+    updateSAT();
+}
+
+struct Projection {
+    float min, max;
+};
+
+Projection projectShape(glm::vec2 vertices[], glm::vec2 axis) {
+    float min = glm::dot(axis, vertices[0]);
+    float max = min;
+
+    for (int i = 0; i < 4; i++) {
+        float p = glm::dot(axis, vertices[i]);
+        if (p < min) min = p;
+        else if (p > max) max = p;
+    }
+    return {min, max};
+}
+
+bool Hitbox::colliding(Hitbox &object1, Hitbox &object2){
+    if (object1.AABB && object2.AABB) {
+        bool collisionX = (object1.X + object1.width  * 0.5f) >= (object2.X - object2.width  * 0.5f) && (object2.X + object2.width  * 0.5f) >= (object1.X - object1.width  * 0.5f);
+        bool collisionY = (object1.Y + object1.height * 0.5f) >= (object2.Y - object2.height * 0.5f) && (object2.Y + object2.height * 0.5f) >= (object1.Y - object1.height * 0.5f);
+        return collisionX && collisionY;
+    }else{ 
+        for (int i = 0; i < 4; i++) {
+            Projection p1 = projectShape(object1.SATvertices, object1.normals[i]);
+            Projection p2 = projectShape(object2.SATvertices, object1.normals[i]);
+            if (!(p1.min <= p2.max && p2.min <= p1.max)) return false;
+        }
+        for (int i = 0; i < 4; i++) {
+            Projection p1 = projectShape(object1.SATvertices, object2.normals[i]);
+            Projection p2 = projectShape(object2.SATvertices, object2.normals[i]);
+            if (!(p1.min <= p2.max && p2.min <= p1.max)) return false;
+        }
+        return true;
+    }
 }

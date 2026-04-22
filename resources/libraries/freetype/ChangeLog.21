@@ -1404,7 +1404,7 @@
 2004-08-28  Werner Lemberg  <wl@gnu.org>
 
 	* src/otlayout/otlgpos.c (otl_value_length): Return number of bytes,
-	not number of 16bit entities.
+	not number of 16bit projectiles.
 	(otl_gpos_lookup2_validate): Check class definition tables for
 	format 2.
 	Fix loop for format 2.

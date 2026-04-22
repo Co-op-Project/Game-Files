@@ -2338,7 +2338,7 @@
 
 	Fix Savannah bug #35660.
 
-	For some divisions, we use casts to 32bit entities.  Always guard
+	For some divisions, we use casts to 32bit projectiles.  Always guard
 	against division by zero with these casts also.
 
 	* src/base/ftcalc.c (ft_div64by32): Remove redundant cast.

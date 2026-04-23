@@ -79,6 +79,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void window_focus_callback(GLFWwindow* window, int focused);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int bits);
+void timeBenchmark(bool stop);
 
 struct Character {
 	unsigned int TextureID;  // ID handle of the glyph texture
@@ -243,11 +244,11 @@ int main(){
 	std::vector<Projectile> projectiles;
 	
 
-	projectiles.emplace_back(Projectile(0.5f, 0.5f, 997, 1.0f, true, true));
+	projectiles.emplace_back(Projectile(0.5f, 0.5f, 997, 1.0f, true, false, glm::vec2(0.2f)));
 	projectiles[0].friction = glm::vec2(0.1f, 0.1f);
 	projectiles[0].As.push_back(glm::vec2(0.0f, 0.0f));
 
-	projectiles.emplace_back(Projectile(0.5f, 0.5f, 997, 1.0f, true, false));
+	projectiles.emplace_back(Projectile(0.5f, 0.7f, 997, 1.0f, true, false, glm::vec2(0.2f)));
 	projectiles[1].friction = glm::vec2(0.1f, 0.1f);
 	projectiles[1].As.push_back(glm::vec2(0.0f, 0.0f));
 
@@ -265,11 +266,13 @@ int main(){
     	lastTime = currentTime;
 
     	glfwPollEvents();
-		if(projectiles[0].hitbox.colliding(projectiles[0].hitbox, projectiles[1].hitbox)){
+		timeBenchmark(false);
+		if(projectiles[0].colliding(projectiles[0], projectiles[1])){
 			glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
 		}else{
 			glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
 		}
+		timeBenchmark(true);
     	glClear(GL_COLOR_BUFFER_BIT);
 
 		if(held(BUTTON_MINUS)){
@@ -294,21 +297,21 @@ int main(){
 			current.draw(quadShader);
 		}*/
 		float tempAngle = projectiles[0].pointTowards(lastX, (window_height - lastY), false);
-		//if(pressed(BUTTON_Q)) projectiles[0].V += projectiles[0].dirScalar(0.07f, tempAngle);
-		if(held(BUTTON_UP)) projectiles[0].Yp += 0.04f * deltaTime;
-		if(held(BUTTON_DOWN)) projectiles[0].Yp -= 0.04f * deltaTime;
-		if(held(BUTTON_RIGHT)) projectiles[0].Xp += 0.04f * deltaTime;
-		if(held(BUTTON_LEFT)) projectiles[0].Xp -= 0.04f * deltaTime;
+		if(pressed(BUTTON_Q)) projectiles[0].V += projectiles[0].dirScalar(0.15f, tempAngle);
+		if(held(BUTTON_UP))    projectiles[0].As[0].y = 0.2f;
+		if(held(BUTTON_DOWN))  projectiles[0].As[0].y = -0.2f;
+		if(held(BUTTON_RIGHT)) projectiles[0].As[0].x = 0.2f;
+		if(held(BUTTON_LEFT))  projectiles[0].As[0].x = -0.2f;
 
 		projectiles[0].update();
 		projectiles[0].draw(quadShader);
 
 		float tempAngle2 = projectiles[1].pointTowards(lastX, (window_height - lastY), false);
-		//if(pressed(BUTTON_W)) projectiles[1].V += projectiles[1].dirScalar(0.07f, tempAngle2);
-		if(held(BUTTON_W)) projectiles[1].Yp += 0.04f * deltaTime;
-		if(held(BUTTON_S)) projectiles[1].Yp -= 0.04f * deltaTime;
-		if(held(BUTTON_D)) projectiles[1].Xp += 0.04f * deltaTime;
-		if(held(BUTTON_A)) projectiles[1].Xp -= 0.04f * deltaTime;
+		if(pressed(BUTTON_W)) projectiles[1].V += projectiles[1].dirScalar(0.15f, tempAngle2);
+		//if(held(BUTTON_W)) projectiles[1].As[0].y = 0.2f;
+		if(held(BUTTON_S)) projectiles[1].As[0].y = -0.2f;
+		if(held(BUTTON_D)) projectiles[1].As[0].x = 0.2f;
+		if(held(BUTTON_A)) projectiles[1].As[0].x = -0.2f;
 
 		projectiles[1].update();
 		projectiles[1].draw(quadShader);
@@ -502,8 +505,7 @@ void window_focus_callback(GLFWwindow* window, int focused) {
 	}
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
 
 #define process_button(b, keyCode)\
 case keyCode: {\
@@ -522,3 +524,13 @@ input.buttons[b].is_down = bool(action);\
 	}
 }
 
+void timeBenchmark(bool stop) {
+	static float oldTime;
+	if (stop) {
+		std::cout << "Total time: " << float(glfwGetTime()) - oldTime << '\n';
+	}
+	else {
+		oldTime = float(glfwGetTime());
+		std::cout << "Starting benchmark\n";
+	}
+}

@@ -468,6 +468,17 @@ void Entity::move(){
     }
 
     V += A * deltaTime;
+    if(V.x < 0.0f){
+        if(V.x < -maxV.x) V.x = -maxV.x;
+    }else{
+        if(V.x > maxV.x) V.x = maxV.x;
+    }
+    if(V.y < 0.0f){
+        if(V.y < -maxV.y) V.y = -maxV.y;
+    }else{
+        if(V.y > maxV.y) V.y = maxV.y;
+    }
+
 }
 
 float Entity::pointTowards(float x, float y, bool percentage){
@@ -493,7 +504,7 @@ glm::vec2 Entity::dirScalar(float mag, float dir){
     return glm::vec2(mag * glm::cos(dir), mag * glm::sin(dir));
 }
 
-Projectile::Projectile(float x, float y, short int texture, float scale, bool render, bool AABB){
+Projectile::Projectile(float x, float y, short int texture, float scale, bool render, bool AABB, glm::vec2 maxV){
     Xp=x;
     Yp=y;
     this->render = render;
@@ -504,6 +515,7 @@ Projectile::Projectile(float x, float y, short int texture, float scale, bool re
     hitbox.AABB = AABB;
     type = ENTITY;
     hitbox.type = STANDARD;
+    this->maxV = maxV;
     this->update();
     hitbox.updateSAT();
 }
@@ -564,22 +576,100 @@ Projection projectShape(glm::vec2 vertices[], glm::vec2 axis) {
     return {min, max};
 }
 
-bool Hitbox::colliding(Hitbox &object1, Hitbox &object2){
-    if (object1.AABB && object2.AABB) {
-        bool collisionX = (object1.X + object1.width  * 0.5f) >= (object2.X - object2.width  * 0.5f) && (object2.X + object2.width  * 0.5f) >= (object1.X - object1.width  * 0.5f);
-        bool collisionY = (object1.Y + object1.height * 0.5f) >= (object2.Y - object2.height * 0.5f) && (object2.Y + object2.height * 0.5f) >= (object1.Y - object1.height * 0.5f);
-        return collisionX && collisionY;
+bool Projectile::colliding(Projectile &object1, Projectile &object2){
+    if (object1.hitbox.AABB && object2.hitbox.AABB) {
+        //bool collisionX = (object1.hitbox.X + object1.hitbox.width  * 0.5f) >= (object2.hitbox.X - object2.hitbox.width  * 0.5f) && (object2.hitbox.X + object2.hitbox.width  * 0.5f) >= (object1.hitbox.X - object1.hitbox.width  * 0.5f);
+        //bool collisionY = (object1.hitbox.Y + object1.hitbox.height * 0.5f) >= (object2.hitbox.Y - object2.hitbox.height * 0.5f) && (object2.hitbox.Y + object2.hitbox.height * 0.5f) >= (object1.hitbox.Y - object1.hitbox.height * 0.5f);
+        //return collisionX && collisionY;
+
+        float overlapX = std::min(object1.hitbox.X + object1.hitbox.width  * 0.5f, object2.hitbox.X + object2.hitbox.width  * 0.5f)
+                       - std::max(object1.hitbox.X - object1.hitbox.width  * 0.5f, object2.hitbox.X - object2.hitbox.width  * 0.5f);
+        float overlapY = std::min(object1.hitbox.Y + object1.hitbox.height * 0.5f, object2.hitbox.Y + object2.hitbox.height * 0.5f)
+                       - std::max(object1.hitbox.Y - object1.hitbox.height * 0.5f, object2.hitbox.Y - object2.hitbox.height * 0.5f);
+
+        if(overlapX <= 0.0f || overlapY <= 0.0f) return false;
+
+        if(overlapX < overlapY){
+            float speed1 = std::abs(object1.V.x);
+            float speed2 = std::abs(object2.V.x);
+            float totalSpeed = speed1 + speed2;
+            float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.5f;
+            float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.5f;
+            float overlapXn = overlapX / window_width;
+            if(object1.Xp < object2.Xp){
+                object1.Xp -= share1 * overlapXn;
+                object2.Xp += share2 * overlapXn;
+            }else{
+                object1.Xp += share1 * overlapXn;
+                object2.Xp -= share2 * overlapXn;
+            }
+        }else{
+            float speed1 = std::abs(object1.V.y);
+            float speed2 = std::abs(object2.V.y);
+            float totalSpeed = speed1 + speed2;
+            float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.5f;
+            float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.5f;
+            float overlapYn = overlapY / window_height;
+            if(object1.Yp < object2.Yp){
+                object1.Yp -= share1 * overlapYn;
+                object2.Yp += share2 * overlapYn;
+            }else{
+                object1.Yp += share1 * overlapYn;
+                object2.Yp -= share2 * overlapYn;
+            }
+        }
+        object1.V = glm::vec2(0.0f); object2.V = glm::vec2(0.0f);
+        object1.A = glm::vec2(0.0f); object2.A = glm::vec2(0.0f);
+        return true;
     }else{ 
-        for (int i = 0; i < 4; i++) {
-            Projection p1 = projectShape(object1.SATvertices, object1.normals[i]);
-            Projection p2 = projectShape(object2.SATvertices, object1.normals[i]);
-            if (!(p1.min <= p2.max && p2.min <= p1.max)) return false;
+        float minOverlap = std::numeric_limits<float>::max();
+        glm::vec2 mtv1(0.0f);
+
+        for (int i = 0; i < 2; i++) {
+            Projection p1 = projectShape(object1.hitbox.SATvertices, object1.hitbox.normals[i]);
+            Projection p2 = projectShape(object2.hitbox.SATvertices, object1.hitbox.normals[i]);
+
+            float overlap = std::min(p1.max, p2.max) - std::max(p1.min, p2.min);
+
+            glm::vec2 axis = object1.hitbox.normals[i];
+            
+            if (overlap <= 0.0f) return false;
+
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+                glm::vec2 dir = glm::vec2(object1.Xp - object2.Xp, object1.Yp - object2.Yp);
+                mtv1 = (glm::dot(dir, axis) < 0.0f ? -axis : axis) * overlap;
+            }
         }
-        for (int i = 0; i < 4; i++) {
-            Projection p1 = projectShape(object1.SATvertices, object2.normals[i]);
-            Projection p2 = projectShape(object2.SATvertices, object2.normals[i]);
-            if (!(p1.min <= p2.max && p2.min <= p1.max)) return false;
+
+        minOverlap = std::numeric_limits<float>::max();
+        glm::vec2 mtv2(0.0f);
+
+        for (int i = 0; i < 2; i++) {
+            Projection p1 = projectShape(object1.hitbox.SATvertices, object2.hitbox.normals[i]);
+            Projection p2 = projectShape(object2.hitbox.SATvertices, object2.hitbox.normals[i]);
+
+            float overlap = std::min(p1.max, p2.max) - std::max(p1.min, p2.min);
+
+            glm::vec2 axis = object2.hitbox.normals[i];
+            
+            if (overlap <= 0.0f) return false;
+
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+                glm::vec2 dir = glm::vec2(object2.Xp - object1.Xp, object2.Yp - object1.Yp);
+                mtv2 = (glm::dot(dir, axis) < 0.0f ? -axis : axis) * overlap;
+            }
         }
+
+        float speed1 = std::abs(object1.V.y);
+        float speed2 = std::abs(object2.V.y);
+        float totalSpeed = speed1 + speed2;
+        float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.5f;
+        float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.5f;
+
+        object1.Xp += mtv1.x / window_width * share1; object1.Yp += mtv1.y / window_height * share1;
+        object2.Xp += mtv2.x / window_width * share2; object2.Yp += mtv2.y / window_height * share2;
         return true;
     }
 }

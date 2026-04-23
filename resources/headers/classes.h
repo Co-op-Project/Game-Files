@@ -155,7 +155,8 @@ public:
     Entity& operator=(Entity&&) noexcept = default;
 
     float Xp = 0.5f, Yp = 0.5f, scale = 1.0f;
-    glm::vec2 V = glm::vec2(0.0f), A = glm::vec2(0.0f), friction = glm::vec2(0.0f);
+    glm::vec2 V = glm::vec2(0.0f), A = glm::vec2(0.0f), friction = glm::vec2(0.0f), maxV = glm::vec2(std::numeric_limits<float>::max());
+;
     std::vector<glm::vec2> As;
 
     Entity(float x, float y, short int texture, float scale, bool render);
@@ -176,7 +177,6 @@ public:
     Hitbox();
     void updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio, int type);
     void updateSAT();
-    bool colliding(Hitbox &object1, Hitbox &object2);
 };
 
 class Projectile : public Entity {
@@ -188,9 +188,10 @@ public:
 
     float elasticity = 1.0f, mass = 1.0f;
 
-    Projectile(float x, float y, short int texture, float scale, bool render, bool AABB);
+    Projectile(float x, float y, short int texture, float scale, bool render, bool AABB, glm::vec2 maxV);
     void update();
     void draw(Shader &s);
+    bool colliding(Projectile &object1, Projectile &object2);
 };
 
 #endif

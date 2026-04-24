@@ -154,8 +154,8 @@ public:
     Entity(Entity&&) noexcept = default;
     Entity& operator=(Entity&&) noexcept = default;
 
-    float Xp = 0.5f, Yp = 0.5f, scale = 1.0f;
-    glm::vec2 V = glm::vec2(0.0f), A = glm::vec2(0.0f), friction = glm::vec2(0.0f), maxV = glm::vec2(std::numeric_limits<float>::max());
+    float Xp = 0.5f, Yp = 0.5f, scale = 1.0f, mass = 1.0f, maxSelfGivenV = 1.0f;
+    glm::vec2 V = glm::vec2(0.0f), A = glm::vec2(0.0f), friction = glm::vec2(0.0f);
 ;
     std::vector<glm::vec2> As;
 
@@ -186,9 +186,9 @@ public:
 
     Hitbox hitbox;
 
-    float elasticity = 1.0f, mass = 1.0f;
+    float elasticity = 1.0f;
 
-    Projectile(float x, float y, short int texture, float scale, bool render, bool AABB, glm::vec2 maxV);
+    Projectile(float x, float y, short int texture, float scale, bool render, bool AABB);
     void update();
     void draw(Shader &s);
     bool colliding(Projectile &object1, Projectile &object2);

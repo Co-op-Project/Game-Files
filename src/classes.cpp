@@ -437,7 +437,7 @@ Entity::Entity(float x, float y, short int texture, float scale, bool render){
 
 void Entity::update(){
     float tempSizeRatio = 4.0f * scale * (window_height / startingWindow_height);
-    for(int i = 0; i < 4; i++){
+    for(int i = 0; i < 3; i++){
         move();
         updateData(Xp, Yp, relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), texture, render, tempSizeRatio / 2.67f, ENTITY);
     }
@@ -447,38 +447,30 @@ void Entity::move(){
     Xp += V.x * deltaTime;
     Yp += V.y * deltaTime;
     A = glm::vec2(0.0f);
-    for(glm::vec2 a : As) A += a;
-    if(V.x != 0.0f){
-        if(V.x > 0){
-            A.x -= friction.x;
-            if(V.x < 0) V.x = 0.0f;
+    for(glm::vec2 &a : As) A +=a;
+
+    if(A.x != 0.0f){
+        if(A.x < 0.0f){
+            A.x += friction.x * mass * deltaTime;
+            if(A.x > 0.0f) A.x = 0.0f;
         }else{
-            A.x += friction.x;
-            if(V.x > 0) V.x = 0.0f;
+            A.x -= friction.x * mass * deltaTime;
+            if(A.x < 0.0f) A.x = 0.0f;
         }
     }
-    if(V.y != 0.0f){
-        if(V.y > 0){
-            A.y -= friction.y;
-            if(V.y < 0) V.y = 0.0f;
+    if(A.y != 0.0f){
+        if(A.y < 0.0f){
+            A.y += friction.y * mass * deltaTime;
+            if(A.y > 0.0f) A.y = 0.0f;
         }else{
-            A.y += friction.y;
-            if(V.y > 0) V.y = 0.0f;
+            A.y -= friction.y * mass * deltaTime;
+            if(A.y < 0.0f) A.y = 0.0f;
         }
     }
 
     V += A * deltaTime;
-    if(V.x < 0.0f){
-        if(V.x < -maxV.x) V.x = -maxV.x;
-    }else{
-        if(V.x > maxV.x) V.x = maxV.x;
-    }
-    if(V.y < 0.0f){
-        if(V.y < -maxV.y) V.y = -maxV.y;
-    }else{
-        if(V.y > maxV.y) V.y = maxV.y;
-    }
-
+    if(V.x != 0.0f) V.x *= 1.0f - (friction.x * mass / abs(V.x)) * deltaTime;
+    if(V.y != 0.0f) V.y *= 1.0f - (friction.y * mass / abs(V.y)) * deltaTime;
 }
 
 float Entity::pointTowards(float x, float y, bool percentage){
@@ -504,18 +496,17 @@ glm::vec2 Entity::dirScalar(float mag, float dir){
     return glm::vec2(mag * glm::cos(dir), mag * glm::sin(dir));
 }
 
-Projectile::Projectile(float x, float y, short int texture, float scale, bool render, bool AABB, glm::vec2 maxV){
+Projectile::Projectile(float x, float y, short int texture, float scale, bool render, bool AABB){
     Xp=x;
     Yp=y;
     this->render = render;
     this->texture = texture;
     this->scale = scale;
-    hitbox.hitboxWidth = 1.0f * scale;
-    hitbox.hitboxHeight = 1.0f * scale;
+    hitbox.hitboxWidth = 1.0f;
+    hitbox.hitboxHeight = 1.0f;
     hitbox.AABB = AABB;
     type = ENTITY;
     hitbox.type = STANDARD;
-    this->maxV = maxV;
     this->update();
     hitbox.updateSAT();
 }
@@ -593,8 +584,8 @@ bool Projectile::colliding(Projectile &object1, Projectile &object2){
             float speed1 = std::abs(object1.V.x);
             float speed2 = std::abs(object2.V.x);
             float totalSpeed = speed1 + speed2;
-            float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.5f;
-            float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.5f;
+            float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.1f;
+            float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.1f;
             float overlapXn = overlapX / window_width;
             if(object1.Xp < object2.Xp){
                 object1.Xp -= share1 * overlapXn;
@@ -607,8 +598,8 @@ bool Projectile::colliding(Projectile &object1, Projectile &object2){
             float speed1 = std::abs(object1.V.y);
             float speed2 = std::abs(object2.V.y);
             float totalSpeed = speed1 + speed2;
-            float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.5f;
-            float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.5f;
+            float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.1f;
+            float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.1f;
             float overlapYn = overlapY / window_height;
             if(object1.Yp < object2.Yp){
                 object1.Yp -= share1 * overlapYn;
@@ -618,7 +609,10 @@ bool Projectile::colliding(Projectile &object1, Projectile &object2){
                 object2.Yp -= share2 * overlapYn;
             }
         }
-        object1.V = glm::vec2(0.0f); object2.V = glm::vec2(0.0f);
+
+        glm::vec2 tempV = object1.V * object1.mass;
+        object1.V = object2.V * object2.mass;
+        object2.V = tempV;
         object1.A = glm::vec2(0.0f); object2.A = glm::vec2(0.0f);
         return true;
     }else{ 
@@ -665,11 +659,16 @@ bool Projectile::colliding(Projectile &object1, Projectile &object2){
         float speed1 = std::abs(object1.V.y);
         float speed2 = std::abs(object2.V.y);
         float totalSpeed = speed1 + speed2;
-        float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.5f;
-        float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.5f;
+        float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.1f;
+        float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.1f;
 
         object1.Xp += mtv1.x / window_width * share1; object1.Yp += mtv1.y / window_height * share1;
         object2.Xp += mtv2.x / window_width * share2; object2.Yp += mtv2.y / window_height * share2;
+
+        glm::vec2 tempV = object1.V * object1.mass;
+        object1.V = object2.V * object2.mass;
+        object2.V = tempV;
+        object1.A = glm::vec2(0.0f); object2.A = glm::vec2(0.0f);
         return true;
     }
 }

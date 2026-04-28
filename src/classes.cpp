@@ -203,7 +203,7 @@ Quad::Quad(float x, float y, float width, float height, int texture, bool render
 
 void Quad::updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio, int type){
     bool needsUpdate = false;
-    X = x * window_width;
+    X = x * window_height;
     Y = y * window_height;
     this->render = render;
     this->type = type;
@@ -276,17 +276,19 @@ Quad::Quad(){}
 
 void Quad::draw(Shader &s){
     if(render){
-        if(preX != X || preY != Y || preAngle != angle){
+        if(preX != X || preY != Y || preAngle != angle || preWorldX != worldX || preWorldY != worldY){
+            preWorldX = worldX;
+            preWorldY = worldY;
             preX = X;
             preY = Y;
             preAngle = angle;
             model = glm::mat4(1.0f);
             switch (type){
                 case STANDARD :{
-                    model = glm::translate(model, glm::vec3(X, Y, 0.0f));
+                    model = glm::translate(model, glm::vec3(X - preWorldX, Y - preWorldY, 0.0f));
                 } break;
                 case ENTITY :{
-                    model = glm::translate(model, glm::vec3(X, Y, 0.0f));
+                    model = glm::translate(model, glm::vec3(X - preWorldX, Y - preWorldY, 0.0f));
                     model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
                 } break;
                 default:
@@ -437,10 +439,7 @@ Entity::Entity(float x, float y, short int texture, float scale, bool render){
 
 void Entity::update(){
     float tempSizeRatio = 4.0f * scale * (window_height / startingWindow_height);
-    for(int i = 0; i < 3; i++){
-        move();
-        updateData(Xp, Yp, relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), texture, render, tempSizeRatio / 2.67f, ENTITY);
-    }
+    updateData(Xp, Yp, relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), texture, render, tempSizeRatio / 2.67f, ENTITY);
 }
 
 void Entity::move(){
@@ -470,21 +469,19 @@ void Entity::move(){
 
     V += A * deltaTime;
     if(V.x != 0.0f) V.x *= 1.0f - (friction.x * mass / abs(V.x)) * deltaTime;
+    if(abs(V.x) < 0.01f) V.x = 0.0f;
     if(V.y != 0.0f) V.y *= 1.0f - (friction.y * mass / abs(V.y)) * deltaTime;
+    if(abs(V.y) < 0.01f) V.y = 0.0f;
 }
 
-float Entity::pointTowards(float x, float y, bool percentage){
+float Entity::pointTowards(float x, float y){
     float targetX, targetY;
-    if (percentage) {
-        x *= window_width;
-        y *= window_height;
-    }
     float left = window_width * (zoom - 2.0f) * -0.5f;
     float right = window_width * zoom * 0.5f;
     float bottom = window_height * (zoom - 2.0f) * -0.5f;
     float top = window_height * zoom * 0.5f;
-    targetX = left + (right - left) * (x / window_width);
-    targetY = bottom + (top - bottom) * (y / window_height);
+    targetX = left + (right - left) * (x / window_width) + worldX;
+    targetY = bottom + (top - bottom) * (y / window_height) + worldY;
     
     float deltaX = targetX - X;
     float deltaY = targetY - Y;
@@ -495,6 +492,8 @@ float Entity::pointTowards(float x, float y, bool percentage){
 glm::vec2 Entity::dirScalar(float mag, float dir){
     return glm::vec2(mag * glm::cos(dir), mag * glm::sin(dir));
 }
+
+Projectile::Projectile(){}
 
 Projectile::Projectile(float x, float y, short int texture, float scale, bool render, bool AABB){
     Xp=x;
@@ -514,12 +513,12 @@ Projectile::Projectile(float x, float y, short int texture, float scale, bool re
 void Projectile::update(){
     this->Entity::update();
     hitbox.AABB ? hitbox.angle = 0 : hitbox.angle = angle;
-    hitbox.updateData(Xp, Yp, (width / window_height) * hitbox.hitboxWidth, (height / window_height) * hitbox.hitboxHeight, 1001, debug.showHitboxes, 1, hitbox.AABB ? STANDARD : ENTITY);
+    hitbox.updateData(Xp, Yp, (width / window_height) * hitbox.hitboxWidth, (height / window_height) * hitbox.hitboxHeight, 1001, 1, hitbox.AABB ? STANDARD : ENTITY);
 }
 
 void Projectile::draw(Shader &s){
     this->Quad::draw(s);
-    hitbox.draw(s);
+    if(debug.showHitboxes) hitbox.draw(s);
 }
 
 Hitbox::Hitbox(){}
@@ -546,9 +545,8 @@ void Hitbox::updateSAT(){
     }
 }
 
-void Hitbox::updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio, int type){
-    Quad::updateData(x, y, width, height, texture, render, sizeRatio, type);
-    updateSAT();
+void Hitbox::updateData(float x, float y, float width, float height, int texture, float sizeRatio, int type){
+    Quad::updateData(x, y, width, height, texture, true, sizeRatio, type);
 }
 
 struct Projection {
@@ -569,10 +567,6 @@ Projection projectShape(glm::vec2 vertices[], glm::vec2 axis) {
 
 bool Projectile::colliding(Projectile &object1, Projectile &object2){
     if (object1.hitbox.AABB && object2.hitbox.AABB) {
-        //bool collisionX = (object1.hitbox.X + object1.hitbox.width  * 0.5f) >= (object2.hitbox.X - object2.hitbox.width  * 0.5f) && (object2.hitbox.X + object2.hitbox.width  * 0.5f) >= (object1.hitbox.X - object1.hitbox.width  * 0.5f);
-        //bool collisionY = (object1.hitbox.Y + object1.hitbox.height * 0.5f) >= (object2.hitbox.Y - object2.hitbox.height * 0.5f) && (object2.hitbox.Y + object2.hitbox.height * 0.5f) >= (object1.hitbox.Y - object1.hitbox.height * 0.5f);
-        //return collisionX && collisionY;
-
         float overlapX = std::min(object1.hitbox.X + object1.hitbox.width  * 0.5f, object2.hitbox.X + object2.hitbox.width  * 0.5f)
                        - std::max(object1.hitbox.X - object1.hitbox.width  * 0.5f, object2.hitbox.X - object2.hitbox.width  * 0.5f);
         float overlapY = std::min(object1.hitbox.Y + object1.hitbox.height * 0.5f, object2.hitbox.Y + object2.hitbox.height * 0.5f)
@@ -587,88 +581,184 @@ bool Projectile::colliding(Projectile &object1, Projectile &object2){
             float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.1f;
             float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.1f;
             float overlapXn = overlapX / window_width;
+            if (overlapXn < 0.001f) overlapXn = 0.001f;
             if(object1.Xp < object2.Xp){
-                object1.Xp -= share1 * overlapXn;
-                object2.Xp += share2 * overlapXn;
-            }else{
-                object1.Xp += share1 * overlapXn;
-                object2.Xp -= share2 * overlapXn;
+                object1.immobile ? object2.Xp += overlapXn : object1.Xp -= share1 * overlapXn;
+                object2.immobile ? object1.Xp -= overlapXn : object2.Xp += share2 * overlapXn;
+            }else{ 
+                object1.immobile ? object2.Xp -= overlapXn : object1.Xp += share1 * overlapXn;
+                object2.immobile ? object1.Xp += overlapXn : object2.Xp -= share2 * overlapXn;
             }
-        }else{
+        }else if(overlapY < overlapX){
             float speed1 = std::abs(object1.V.y);
             float speed2 = std::abs(object2.V.y);
             float totalSpeed = speed1 + speed2;
-            float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.1f;
-            float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.1f;
+            float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.5f;
+            float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.5f;
             float overlapYn = overlapY / window_height;
+            if (overlapYn < 0.001f) overlapYn = 0.001f;
             if(object1.Yp < object2.Yp){
-                object1.Yp -= share1 * overlapYn;
-                object2.Yp += share2 * overlapYn;
+                object1.immobile ? object2.Yp += overlapYn: object1.Yp -= share1 * overlapYn;
+                object2.immobile ? object1.Yp -= overlapYn: object2.Yp += share2 * overlapYn;
             }else{
-                object1.Yp += share1 * overlapYn;
-                object2.Yp -= share2 * overlapYn;
+                object1.immobile ? object2.Yp -= overlapYn: object1.Yp += share1 * overlapYn;
+                object2.immobile ? object1.Yp += overlapYn: object2.Yp -= share2 * overlapYn;
+            }
+        }else{
+            int iterations = 1;
+            while(iterations < 100){
+                if(object1.hitbox.X + object1.hitbox.width * 0.5f - (object1.hitbox.width * iterations) < object2.hitbox.X - object2.hitbox.width * 0.5f){
+                    float displaceX = overlapX / window_width * iterations;
+                    if (displaceX < 0.001f) displaceX = 0.001f;
+                    object1.Xp -= displaceX;
+                    overlapX = 1.f;
+                    break;
+                }
+                if(object1.hitbox.X - object1.hitbox.width * 0.5f - (object1.hitbox.width * iterations) > object2.hitbox.X + object2.hitbox.width * 0.5f){
+                    float displaceX = overlapX / window_width  * iterations;
+                    if (displaceX < 0.001f) displaceX = 0.001f;
+                    object1.Xp += displaceX;
+                    overlapX = 1.f;
+                    break;
+                }
+                if(object1.hitbox.Y + object1.hitbox.height * 0.5f - (object1.hitbox.height * iterations) < object2.hitbox.Y - object2.hitbox.height * 0.5f){
+                    float displaceY = overlapY / window_height * iterations;
+                    if (displaceY < 0.001f) displaceY = 0.001f;
+                    object1.Yp -= displaceY;
+                    overlapY = 1.f;
+                    break;
+                }
+                if(object1.hitbox.Y - object1.hitbox.height * 0.5f - (object1.hitbox.height * iterations) > object2.hitbox.Y + object2.hitbox.height * 0.5f){
+                    float displaceY = overlapY / window_height * iterations;
+                    if (displaceY < 0.001f) displaceY = 0.001f;
+                    object1.Yp += displaceY;
+                    overlapY = 1.f;
+                    break;
+                }
+                iterations++;
             }
         }
-
-        glm::vec2 tempV = object1.V * object1.mass;
-        object1.V = object2.V * object2.mass;
-        object2.V = tempV;
-        object1.A = glm::vec2(0.0f); object2.A = glm::vec2(0.0f);
+        
+        float totalElasticity = (object1.elasticity + object2.elasticity) * 0.5f;
+        if(overlapX < overlapY){
+            if(object1.immobile || object2.immobile){
+                object1.V.x = 0.0f;
+                object2.V.x = 0.0f;
+            }else{
+                float tempVx = object1.V.x * object1.mass;
+                object1.V.x = object1.V.x * (1.0f - totalElasticity) + (object2.V.x * object2.mass) * totalElasticity;
+                object2.V.x = object2.V.x * (1.0f - totalElasticity) + tempVx * totalElasticity;
+            }
+        }else{
+            if(object1.immobile || object2.immobile){
+                object1.V.y = 0.0f;
+                object2.V.y = 0.0f;
+            }else{
+                float tempVy = object1.V.y * object1.mass;
+                object1.V.y = object1.V.y * (1.0f - totalElasticity) + (object2.V.y * object2.mass) * totalElasticity;
+                object2.V.y = object2.V.y * (1.0f - totalElasticity) + tempVy * totalElasticity;
+            }
+        }
+        
         return true;
     }else{ 
+        object1.hitbox.updateSAT();
+        object2.hitbox.updateSAT();
         float minOverlap = std::numeric_limits<float>::max();
-        glm::vec2 mtv1(0.0f);
-
+        glm::vec2 mtv(0.0f);
+ 
         for (int i = 0; i < 2; i++) {
-            Projection p1 = projectShape(object1.hitbox.SATvertices, object1.hitbox.normals[i]);
-            Projection p2 = projectShape(object2.hitbox.SATvertices, object1.hitbox.normals[i]);
-
-            float overlap = std::min(p1.max, p2.max) - std::max(p1.min, p2.min);
-
             glm::vec2 axis = object1.hitbox.normals[i];
-            
-            if (overlap <= 0.0f) return false;
-
-            if (overlap < minOverlap) {
-                minOverlap = overlap;
-                glm::vec2 dir = glm::vec2(object1.Xp - object2.Xp, object1.Yp - object2.Yp);
-                mtv1 = (glm::dot(dir, axis) < 0.0f ? -axis : axis) * overlap;
-            }
-        }
-
-        minOverlap = std::numeric_limits<float>::max();
-        glm::vec2 mtv2(0.0f);
-
-        for (int i = 0; i < 2; i++) {
-            Projection p1 = projectShape(object1.hitbox.SATvertices, object2.hitbox.normals[i]);
-            Projection p2 = projectShape(object2.hitbox.SATvertices, object2.hitbox.normals[i]);
-
+            Projection p1 = projectShape(object1.hitbox.SATvertices, axis);
+            Projection p2 = projectShape(object2.hitbox.SATvertices, axis);
             float overlap = std::min(p1.max, p2.max) - std::max(p1.min, p2.min);
-
-            glm::vec2 axis = object2.hitbox.normals[i];
-            
             if (overlap <= 0.0f) return false;
-
             if (overlap < minOverlap) {
                 minOverlap = overlap;
-                glm::vec2 dir = glm::vec2(object2.Xp - object1.Xp, object2.Yp - object1.Yp);
-                mtv2 = (glm::dot(dir, axis) < 0.0f ? -axis : axis) * overlap;
+                glm::vec2 dir(object1.hitbox.X - object2.hitbox.X, object1.hitbox.Y - object2.hitbox.Y);
+                mtv = (glm::dot(dir, axis) < 0.0f ? -axis : axis) * overlap;
+            }
+        }
+ 
+        for (int i = 0; i < 2; i++) {
+            glm::vec2 axis = object2.hitbox.normals[i];
+            Projection p1 = projectShape(object1.hitbox.SATvertices, axis);
+            Projection p2 = projectShape(object2.hitbox.SATvertices, axis);
+            float overlap = std::min(p1.max, p2.max) - std::max(p1.min, p2.min);
+            if (overlap <= 0.0f) return false;
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+                glm::vec2 dir(object1.hitbox.X - object2.hitbox.X, object1.hitbox.Y - object2.hitbox.Y);
+                mtv = (glm::dot(dir, axis) < 0.0f ? -axis : axis) * overlap;
             }
         }
 
-        float speed1 = std::abs(object1.V.y);
-        float speed2 = std::abs(object2.V.y);
-        float totalSpeed = speed1 + speed2;
-        float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.1f;
-        float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.1f;
-
-        object1.Xp += mtv1.x / window_width * share1; object1.Yp += mtv1.y / window_height * share1;
-        object2.Xp += mtv2.x / window_width * share2; object2.Yp += mtv2.y / window_height * share2;
-
-        glm::vec2 tempV = object1.V * object1.mass;
-        object1.V = object2.V * object2.mass;
-        object2.V = tempV;
-        object1.A = glm::vec2(0.0f); object2.A = glm::vec2(0.0f);
+        if (object1.immobile) {
+            object2.Xp -= mtv.x / window_width;
+            object2.Yp -= mtv.y / window_height;
+        } else if (object2.immobile) {
+            object1.Xp += mtv.x / window_width;
+            object1.Yp += mtv.y / window_height;
+        } else {
+            float speed1 = glm::length(object1.V);
+            float speed2 = glm::length(object2.V);
+            float totalSpeed = speed1 + speed2;
+            float share1 = (totalSpeed > 0.0f) ? speed1 / totalSpeed : 0.5f;
+            float share2 = (totalSpeed > 0.0f) ? speed2 / totalSpeed : 0.5f;
+            object1.Xp += mtv.x / window_width  * share1;
+            object1.Yp += mtv.y / window_height * share1;
+            object2.Xp -= mtv.x / window_width  * share2;
+            object2.Yp -= mtv.y / window_height * share2;
+        }
+ 
+        glm::vec2 mtvXpYp(mtv.x / window_width, mtv.y / window_height);
+        float mtvLen = glm::length(mtvXpYp);
+        if(mtvLen > 0.0001f){
+            glm::vec2 mtvDir = mtvXpYp / mtvLen;
+ 
+            float totalElasticity = (object1.elasticity + object2.elasticity) * 0.5f;
+ 
+            if(object1.immobile || object2.immobile){
+                Projectile& mobile = object1.immobile ? object2 : object1;
+                glm::vec2 awayDir = object1.immobile ? -mtvDir : mtvDir;
+                float vDotN = glm::dot(mobile.V, awayDir);
+                if(vDotN < 0.0f) mobile.V -= vDotN * awayDir;
+            } else {
+                float v1n = glm::dot(object1.V, mtvDir);
+                float v2n = glm::dot(object2.V, mtvDir);
+                float new_v1n = v1n * (1.0f - totalElasticity) + (v2n * object2.mass) * totalElasticity;
+                float new_v2n = v2n * (1.0f - totalElasticity) + (v1n * object1.mass) * totalElasticity;
+                object1.V += (new_v1n - v1n) * mtvDir;
+                object2.V += (new_v2n - v2n) * mtvDir;
+            }
+        }
         return true;
     }
+}
+
+Solid::Solid(float x, float y, float width, float height, short int texture, bool render, bool AABB){
+    Xp=x;
+    Yp=y;
+    this->render = render;
+    this->texture = texture;
+    hitbox.hitboxWidth = 1.0f;
+    hitbox.hitboxHeight = 1.0f;
+    solidWidth = width;
+    solidHeight = height;
+    hitbox.AABB = AABB;
+    type = ENTITY;
+    hitbox.type = STANDARD;
+    this->update();
+    hitbox.updateSAT();
+    immobile = true;
+    elasticity = 1.0f;
+}
+
+void Solid::update(){
+    float tempSizeRatio = 16.0f * (window_height / startingWindow_height);
+    V *= 0.0f;
+    A *= 0.0f;
+    updateData(Xp, Yp, relativeWH(solidWidth * tempSizeRatio), relativeWH(solidHeight * tempSizeRatio), texture, render, tempSizeRatio / 2.67f, ENTITY);
+    hitbox.AABB ? hitbox.angle = 0 : hitbox.angle = angle;
+    hitbox.updateData(Xp, Yp, (width / window_height) * hitbox.hitboxWidth, (height / window_height) * hitbox.hitboxHeight, 1001, 1, hitbox.AABB ? STANDARD : ENTITY);
 }

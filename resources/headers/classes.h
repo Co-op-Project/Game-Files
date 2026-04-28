@@ -8,7 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "inputHandler.cpp"
 
-extern float window_width, window_height, startingWindow_width, startingWindow_height, change1, change2, change3, deltaTime, lastX, lastY, zoom;
+extern float window_width, window_height, startingWindow_width, startingWindow_height, change1, change2, change3, deltaTime, lastX, lastY, zoom, worldX, worldY;
 extern Input input;
 extern Debug debug;
 
@@ -67,7 +67,7 @@ Quad(Quad&& other) noexcept;
 Quad(const Quad&) = delete;
 
     static unsigned int VAO, VBO, EBO;
-    float X = 0.0f, Y = 0.0f, width, height, sizeRatio, texXmin, texYmin, preX, preY, tileSize = 0.0f, angle = 0.0f, preAngle = 0.0f;
+    float X = 0.0f, Y = 0.0f, width, height, sizeRatio, texXmin, texYmin, preX, preY, tileSize = 0.0f, angle = 0.0f, preAngle = 0.0f, preWorldX = 0.0f, preWorldY = 0.0f;
     int texture;
     static std::vector<float> vertices;
     bool added = false;
@@ -156,13 +156,14 @@ public:
 
     float Xp = 0.5f, Yp = 0.5f, scale = 1.0f, mass = 1.0f, maxSelfGivenV = 1.0f;
     glm::vec2 V = glm::vec2(0.0f), A = glm::vec2(0.0f), friction = glm::vec2(0.0f);
+    bool immobile = false;
 ;
     std::vector<glm::vec2> As;
 
     Entity(float x, float y, short int texture, float scale, bool render);
     void update();
     void move();
-    float pointTowards(float x, float y, bool percentage);
+    float pointTowards(float x, float y);
     glm::vec2 dirScalar(float mag, float dir);
 };
 
@@ -175,7 +176,7 @@ public:
     glm::vec2 normals[4];
     glm::vec2 SATvertices[4];
     Hitbox();
-    void updateData(float x, float y, float width, float height, int texture, bool render, float sizeRatio, int type);
+    void updateData(float x, float y, float width, float height, int texture, float sizeRatio, int type);
     void updateSAT();
 };
 
@@ -186,12 +187,24 @@ public:
 
     Hitbox hitbox;
 
+    //max 1.0f for perfectly elastic, min 0.5f for perfectly inelastic
     float elasticity = 1.0f;
 
+    glm::vec2 solidNormal = glm::vec2(0.0f);
+
+    Projectile();
     Projectile(float x, float y, short int texture, float scale, bool render, bool AABB);
     void update();
     void draw(Shader &s);
     bool colliding(Projectile &object1, Projectile &object2);
+};
+
+class Solid : public Projectile {
+public:
+
+    float solidWidth, solidHeight;
+    Solid(float x, float y, float width, float height, short int texture, bool render, bool AABB);
+    void update();
 };
 
 #endif

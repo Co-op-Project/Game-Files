@@ -30,7 +30,7 @@
 #include FT_FREETYPE_H
 
 double pi = 3.141592653589793;
-float deltaTime = 0.0f, lastTime = 0.0f, change1 = 0.0f, change2 = 0.0f, change3 = 0.0f, window_width, window_height, startingWindow_width, startingWindow_height, zoom = 3.0f;
+float deltaTime = 0.0f, lastTime = 0.0f, change1 = 0.0f, change2 = 0.0f, change3 = 0.0f, window_width, window_height, startingWindow_width, startingWindow_height, zoom = 5.0f, worldX = 0.0f, worldY = 0.0f;
 glm::mat4 quadProjection = glm::mat4(1.0f);
 glm::mat4 projectionText = glm::mat4(1.0f);
 float lastX = 800.0f / 2.0f;
@@ -242,16 +242,24 @@ int main(){
 	});*/
 
 	std::vector<Projectile> projectiles;
+
+	for(int i = 0; i < 2000; i++){
+		projectiles.emplace_back(Projectile(-1.25f + i * 0.001f, -1.25f + i * 0.001f, 997, 4.0f, true, true));
+		projectiles[i].friction = glm::vec2(0.01f + i * 0.0005f, 0.01f + i * 0.0005f);
+		//projectiles[i].scale = 1.0f + i * 0.001f;
+		//projectiles[i].friction = glm::vec2(1.0f, 1.0f);
+		projectiles[i].As.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
+	}
+
+	std::vector<Solid> solids;
 	
-
-	projectiles.emplace_back(Projectile(0.5f, 0.3f, 997, 4.0f, true, false));
-	projectiles[0].mass = 0.5f;
-	projectiles[0].friction = glm::vec2(0.6f, 0.6f);
-	projectiles[0].As.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
-
-	projectiles.emplace_back(Projectile(0.5f, 0.7f, 997, 4.0f, true, false));
-	projectiles[1].friction = glm::vec2(0.6f, 0.6f);
-	projectiles[1].As.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
+	solids.emplace_back(Solid(-2.0f, 0.0f, 5.f, 17.f, 1002, true, true));
+	solids.emplace_back(Solid(0.0f, -2.0f, 15.f, 5.f, 1002, true, true));
+	solids.emplace_back(Solid(2.0f, 0.0f, 5.f, 28.f, 1002, true, true));
+	solids.emplace_back(Solid(0.0f, 3.5f, 50.f, 5.f, 1002, true, false));
+	solids.emplace_back(Solid(0.5f, 0.5f, 1.f, 1.f, 1002, true, false));
+	solids.emplace_back(Solid(100.0f, 0.0f, 50.f, 10000.f, 1002, true, true));
+	solids[3].angle = pi/4.0;
 
 	quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	quadShader.use();
@@ -267,20 +275,17 @@ int main(){
     	lastTime = currentTime;
 
     	glfwPollEvents();
-		if(projectiles[0].colliding(projectiles[0], projectiles[1])){
-			glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
-		}else{
-			glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
-		}
+		glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
+		
     	glClear(GL_COLOR_BUFFER_BIT);
 
 		if(held(BUTTON_MINUS)){
-			zoom += 2.5f * deltaTime;
+			zoom += 10.f * deltaTime;
 			quadProjection = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
 			projectionText = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
 		}
 		if(held(BUTTON_PLUS)){
-			zoom -= 2.5f * deltaTime;
+			zoom -= 10.f * deltaTime;
 			if(zoom <= 1.0f) zoom = 1.001f;
 			quadProjection = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
 			projectionText = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
@@ -289,42 +294,56 @@ int main(){
 		quadShader.use();
 		quadShader.setMat4("projection", quadProjection);
 
-		/*for(auto& current : projectiles){
-			float tempAngle = current.pointTowards(lastX, (window_height - lastY), false);
-			if(pressed(BUTTON_Q)) current.V += current.dirScalar(1.0f, tempAngle);
+		for(auto& current : solids){
 			current.update();
 			current.draw(quadShader);
+		}
+
+		for(auto& current : projectiles){
+			float tempAngle = current.pointTowards(lastX, (window_height - lastY));
+			if(held(BUTTON_Q)) current.V += current.dirScalar(0.25f, tempAngle);
+			for(int j = 0; j < solids.size(); j++){
+				current.colliding(current, solids[j]);
+			}
+			current.move();
+			current.update();
+			current.draw(quadShader);
+		}
+		
+		/*for(int i = 0; i < projectiles.size(); i++){
+			float tempAngle = projectiles[i].pointTowards(lastX, (window_height - lastY));
+			if(pressed(BUTTON_Q)) projectiles[i].V += projectiles[i].dirScalar(1.f, tempAngle);
+			projectiles[i].colliding(projectiles[i], solids[0]);
+			for(int j = 0; j < projectiles.size(); j++){
+				if(j != i) projectiles[i].colliding(projectiles[i], projectiles[j]);
+			}
+			projectiles[i].colliding(projectiles[i], solids[0]); // delete after testing to see if needed
+			projectiles[i].update();
+			projectiles[i].draw(quadShader);
 		}*/
-		float tempAngle = projectiles[0].pointTowards(lastX, (window_height - lastY), false);
-		//if(held(BUTTON_Q)) projectiles[0].V += projectiles[0].dirScalar(0.003f, tempAngle);
-		if(held(BUTTON_UP))    projectiles[0].As[0].y = ( 1.0f) * (abs(projectiles[0].V.y) < projectiles[0].maxSelfGivenV);
+		
+
+		
+		/*if(held(BUTTON_UP))    projectiles[0].As[0].y = ( 1.0f) * (abs(projectiles[0].V.y) < projectiles[0].maxSelfGivenV);
 		if(held(BUTTON_DOWN))  projectiles[0].As[0].y = (-1.0f) * (abs(projectiles[0].V.y) < projectiles[0].maxSelfGivenV);
 		if(held(BUTTON_RIGHT)) projectiles[0].As[0].x = ( 1.0f) * (abs(projectiles[0].V.x) < projectiles[0].maxSelfGivenV);
 		if(held(BUTTON_LEFT))  projectiles[0].As[0].x = (-1.0f) * (abs(projectiles[0].V.x) < projectiles[0].maxSelfGivenV);
-		projectiles[0].As[0].y *= held(BUTTON_UP) || held(BUTTON_DOWN);
-		projectiles[0].As[0].x *= held(BUTTON_LEFT) || held(BUTTON_RIGHT);
+		projectiles[0].As[0].y *= held(BUTTON_UP) || held(BUTTON_DOWN);			SMOOTH MOVEMENT
+		projectiles[0].As[0].x *= held(BUTTON_LEFT) || held(BUTTON_RIGHT);      SMOOTH MOVEMENT                          */
 
-		projectiles[0].update();
-		projectiles[0].draw(quadShader);
-
-		float tempAngle2 = projectiles[1].pointTowards(lastX, (window_height - lastY), false);
-		//if(held(BUTTON_R)) projectiles[1].V += projectiles[1].dirScalar(0.003f, tempAngle2);
-		if(held(BUTTON_W)) projectiles[1].As[0].y = ( 1.0f) * (abs(projectiles[1].V.y) < projectiles[1].maxSelfGivenV);
-		if(held(BUTTON_S)) projectiles[1].As[0].y = (-1.0f) * (abs(projectiles[1].V.y) < projectiles[1].maxSelfGivenV);
-		if(held(BUTTON_D)) projectiles[1].As[0].x = ( 1.0f) * (abs(projectiles[1].V.x) < projectiles[1].maxSelfGivenV);
-		if(held(BUTTON_A)) projectiles[1].As[0].x = (-1.0f) * (abs(projectiles[1].V.x) < projectiles[1].maxSelfGivenV);
-		projectiles[1].As[0].y *= held(BUTTON_W) || held(BUTTON_S);
-		projectiles[1].As[0].x *= held(BUTTON_A) || held(BUTTON_D);
-
-		projectiles[1].update();
-		projectiles[1].draw(quadShader);
+		if(held(BUTTON_W)) worldY += 1000.f * deltaTime * zoom;
+		if(held(BUTTON_S)) worldY -= 1000.f * deltaTime * zoom;
+		if(held(BUTTON_D)) worldX += 1000.f * deltaTime * zoom;
+		if(held(BUTTON_A)) worldX -= 1000.f * deltaTime * zoom;
+		
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::Begin("ImGui window");
 		ImGui::Text("FPS: = %i Zoom: = %f V: = %.3f %.3f A: = %.3f %.3f", debug.FPS, zoom, projectiles[0].V.x, projectiles[0].V.y, projectiles[0].A.x, projectiles[0].A.y);
-		ImGui::SliderFloat("scale", &projectiles[0].scale, 0.1f, 5.0f, "%.3f", 0);
+		ImGui::SliderFloat("elasticity1", &projectiles[0].elasticity, 0.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("elasticity2", &projectiles[1].elasticity, 0.0f, 1.0f, "%.3f", 0);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

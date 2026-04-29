@@ -154,7 +154,7 @@ public:
     Entity(Entity&&) noexcept = default;
     Entity& operator=(Entity&&) noexcept = default;
 
-    float Xp = 0.5f, Yp = 0.5f, scale = 1.0f, mass = 1.0f, maxSelfGivenV = 1.0f;
+    float Xp = 0.5f, Yp = 0.5f, scale = 1.0f, mass = 1.0f, maxSelfGivenV = 2.5f;
     glm::vec2 V = glm::vec2(0.0f), A = glm::vec2(0.0f), friction = glm::vec2(0.0f);
     bool immobile = false;
 ;
@@ -197,6 +197,7 @@ public:
     void update();
     void draw(Shader &s);
     bool colliding(Projectile &object1, Projectile &object2);
+    bool simpleColliding(Projectile &object1, Projectile &object2);
 };
 
 class Solid : public Projectile {

@@ -243,12 +243,12 @@ int main(){
 
 	std::vector<Projectile> projectiles;
 
-	for(int i = 0; i < 2000; i++){
-		projectiles.emplace_back(Projectile(-1.25f + i * 0.001f, -1.25f + i * 0.001f, 997, 4.0f, true, true));
-		projectiles[i].friction = glm::vec2(0.01f + i * 0.0005f, 0.01f + i * 0.0005f);
+	for(int i = 0; i < 1; i++){
+		projectiles.emplace_back(Projectile(-1.25f + i * 0.001f, -1.25f + i * 0.001f, 997, 4.0f, true, false));
+		//projectiles[i].friction = glm::vec2(0.01f + i * 0.0005f, 0.01f + i * 0.0005f);
 		//projectiles[i].scale = 1.0f + i * 0.001f;
-		//projectiles[i].friction = glm::vec2(1.0f, 1.0f);
-		projectiles[i].As.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
+		projectiles[i].friction = glm::vec2(5.f, 5.f);
+		projectiles[i].As.push_back(glm::vec2(0.0f, 0.0f));
 	}
 
 	std::vector<Solid> solids;
@@ -276,6 +276,9 @@ int main(){
 
     	glfwPollEvents();
 		glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
+		for(auto& current : solids){
+			if(projectiles[0].simpleColliding(projectiles[0], current)) glClearColor(1.0f, 0.0f, 0.1f, 1.0f);
+		}
 		
     	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -298,17 +301,6 @@ int main(){
 			current.update();
 			current.draw(quadShader);
 		}
-
-		for(auto& current : projectiles){
-			float tempAngle = current.pointTowards(lastX, (window_height - lastY));
-			if(held(BUTTON_Q)) current.V += current.dirScalar(0.25f, tempAngle);
-			for(int j = 0; j < solids.size(); j++){
-				current.colliding(current, solids[j]);
-			}
-			current.move();
-			current.update();
-			current.draw(quadShader);
-		}
 		
 		/*for(int i = 0; i < projectiles.size(); i++){
 			float tempAngle = projectiles[i].pointTowards(lastX, (window_height - lastY));
@@ -322,14 +314,23 @@ int main(){
 			projectiles[i].draw(quadShader);
 		}*/
 		
+		if(held(BUTTON_UP))    projectiles[0].As[0].y = ( 8.0f) * (abs(projectiles[0].V.y) < projectiles[0].maxSelfGivenV);
+		if(held(BUTTON_DOWN))  projectiles[0].As[0].y = (-8.0f) * (abs(projectiles[0].V.y) < projectiles[0].maxSelfGivenV);
+		if(held(BUTTON_RIGHT)) projectiles[0].As[0].x = ( 8.0f) * (abs(projectiles[0].V.x) < projectiles[0].maxSelfGivenV);
+		if(held(BUTTON_LEFT))  projectiles[0].As[0].x = (-8.0f) * (abs(projectiles[0].V.x) < projectiles[0].maxSelfGivenV);
+		projectiles[0].As[0].y *= held(BUTTON_UP) || held(BUTTON_DOWN);	
+		projectiles[0].As[0].x *= held(BUTTON_LEFT) || held(BUTTON_RIGHT);     
 
-		
-		/*if(held(BUTTON_UP))    projectiles[0].As[0].y = ( 1.0f) * (abs(projectiles[0].V.y) < projectiles[0].maxSelfGivenV);
-		if(held(BUTTON_DOWN))  projectiles[0].As[0].y = (-1.0f) * (abs(projectiles[0].V.y) < projectiles[0].maxSelfGivenV);
-		if(held(BUTTON_RIGHT)) projectiles[0].As[0].x = ( 1.0f) * (abs(projectiles[0].V.x) < projectiles[0].maxSelfGivenV);
-		if(held(BUTTON_LEFT))  projectiles[0].As[0].x = (-1.0f) * (abs(projectiles[0].V.x) < projectiles[0].maxSelfGivenV);
-		projectiles[0].As[0].y *= held(BUTTON_UP) || held(BUTTON_DOWN);			SMOOTH MOVEMENT
-		projectiles[0].As[0].x *= held(BUTTON_LEFT) || held(BUTTON_RIGHT);      SMOOTH MOVEMENT                          */
+		for(auto& current : projectiles){
+			float tempAngle = current.pointTowards(lastX, (window_height - lastY));
+			if(held(BUTTON_Q)) current.V += current.dirScalar(0.05f, tempAngle);
+			for(int j = 0; j < solids.size(); j++){
+				//current.simpleColliding(current, solids[j]);
+			}
+			current.move();
+			current.update();
+			current.draw(quadShader);
+		}
 
 		if(held(BUTTON_W)) worldY += 1000.f * deltaTime * zoom;
 		if(held(BUTTON_S)) worldY -= 1000.f * deltaTime * zoom;
@@ -341,7 +342,7 @@ int main(){
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::Begin("ImGui window");
-		ImGui::Text("FPS: = %i Zoom: = %f V: = %.3f %.3f A: = %.3f %.3f", debug.FPS, zoom, projectiles[0].V.x, projectiles[0].V.y, projectiles[0].A.x, projectiles[0].A.y);
+		ImGui::Text("FPS: = %i Zoom: = %f V: = %.3f %.3f A: = %.3f %.3f", debug.FPS, zoom, projectiles[0].V.x, projectiles[0].V.y, projectiles[0].As[0].x, projectiles[0].As[0].y);
 		ImGui::SliderFloat("elasticity1", &projectiles[0].elasticity, 0.0f, 1.0f, "%.3f", 0);
 		ImGui::SliderFloat("elasticity2", &projectiles[1].elasticity, 0.0f, 1.0f, "%.3f", 0);
 		ImGui::End();

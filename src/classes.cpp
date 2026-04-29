@@ -468,10 +468,12 @@ void Entity::move(){
     }
 
     V += A * deltaTime;
+
+    
     if(V.x != 0.0f) V.x *= 1.0f - (friction.x * mass / abs(V.x)) * deltaTime;
-    if(abs(V.x) < 0.01f) V.x = 0.0f;
+    if(abs(V.x) < 0.00001f) V.x = 0.0f;
     if(V.y != 0.0f) V.y *= 1.0f - (friction.y * mass / abs(V.y)) * deltaTime;
-    if(abs(V.y) < 0.01f) V.y = 0.0f;
+    if(abs(V.y) < 0.00001f) V.y = 0.0f;
 }
 
 float Entity::pointTowards(float x, float y){
@@ -563,6 +565,30 @@ Projection projectShape(glm::vec2 vertices[], glm::vec2 axis) {
         else if (p > max) max = p;
     }
     return {min, max};
+}
+
+bool Projectile::simpleColliding(Projectile &object1, Projectile &object2){
+    if(object1.hitbox.AABB && object2.hitbox.AABB){
+        bool colX = (object1.hitbox.X + object1.hitbox.width * 0.5f > object2.hitbox.X - object2.hitbox.width * 0.5f) && (object1.hitbox.X - object1.hitbox.width * 0.5f < object2.hitbox.X + object2.hitbox.width * 0.5f);
+        bool colY = (object1.hitbox.Y + object1.hitbox.height * 0.5f > object2.hitbox.Y - object2.hitbox.height * 0.5f) && (object1.hitbox.Y - object1.hitbox.height * 0.5f < object2.hitbox.Y + object2.hitbox.height * 0.5f);
+        if(colX && colY) return true;
+    }else{
+        object1.hitbox.updateSAT();
+        object2.hitbox.updateSAT();
+
+        for (int i = 0; i < 2; i++) {
+            Projection p1 = projectShape(object1.hitbox.SATvertices, object1.hitbox.normals[i]);
+            Projection p2 = projectShape(object2.hitbox.SATvertices, object1.hitbox.normals[i]);
+            if (!(p1.min <= p2.max && p2.min <= p1.max)) return false;
+        }
+        for (int i = 0; i < 2; i++) {
+            Projection p1 = projectShape(object1.hitbox.SATvertices, object2.hitbox.normals[i]);
+            Projection p2 = projectShape(object2.hitbox.SATvertices, object2.hitbox.normals[i]);
+            if (!(p1.min <= p2.max && p2.min <= p1.max)) return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 bool Projectile::colliding(Projectile &object1, Projectile &object2){

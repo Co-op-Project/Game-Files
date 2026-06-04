@@ -240,6 +240,8 @@ void Quad::updateVertices() {
         vertices[verticesStartIndex + 16] = x1; vertices[verticesStartIndex + 17] = y2;  vertices[verticesStartIndex + 18] = texX1;  vertices[verticesStartIndex + 19] = texY2; //x1, y2
         vertices[verticesStartIndex + 20] = x1; vertices[verticesStartIndex + 21] = y1;  vertices[verticesStartIndex + 22] = texX1;  vertices[verticesStartIndex + 23] = texY1; //x1, y1
 
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferSubData(GL_ARRAY_BUFFER, verticesStartIndex * sizeof(float), 24 * sizeof(float), &vertices[verticesStartIndex]);
     } else {
         verticesStartIndex = vertices.size();
         vertices.push_back(x1);  vertices.push_back(y1);  vertices.push_back(texX1);  vertices.push_back(texY1);//x1, y1
@@ -249,9 +251,9 @@ void Quad::updateVertices() {
         vertices.push_back(x2);  vertices.push_back(y2);  vertices.push_back(texX2);  vertices.push_back(texY2);//x2, y2
         vertices.push_back(x1);  vertices.push_back(y2);  vertices.push_back(texX1);  vertices.push_back(texY2);//x1, y2     
         vertices.push_back(x1);  vertices.push_back(y1);  vertices.push_back(texX1);  vertices.push_back(texY1);//x1, y1   
+        added = true;
+        updateBuffers();
     }
-    added = true;
-    updateBuffers();
 }
 void Quad::updateBuffers() {
     glBindVertexArray(this->VAO);
@@ -291,6 +293,9 @@ void Quad::draw(Shader &s){
                     model = glm::translate(model, glm::vec3(X - preWorldX, Y - preWorldY, 0.0f));
                     model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
                 } break;
+                case GUISTATIC :{
+                    model = glm::translate(model, glm::vec3(X, Y, 0.0f));
+                } break;
                 default:
                 break;
             }
@@ -302,7 +307,7 @@ void Quad::draw(Shader &s){
     }
 }
 
-float Quad::relativeX(float x){ return X + width * (-0.5f + x) * (window_height / window_width); }
+float Quad::relativeX(float x){ return X + width * (-0.5f + x); } // * (window_height / window_width)
 
 float Quad::relativeY(float y){ return Y + height * (-0.5f + y); }
 
@@ -326,17 +331,17 @@ myGUI::myGUI(float x, float y, float width, float height, bool render, float siz
 void myGUI::updateGUI(){
     bool tempRender = width != 0.0f && height != 0.0f && render;
     float tempSizeRatio = sizeRatio * (window_height / startingWindow_height);
-    background.updateData(X, Y, width, height, 996, tempRender, tempSizeRatio, STANDARD); 
-    top.updateData(X, relativeY(1.0f), width, relativeWH(tempSizeRatio), 994, tempRender, tempSizeRatio, STANDARD); 
-    bottom.updateData(X, relativeY(0.0f), width, relativeWH(tempSizeRatio), 992, tempRender, tempSizeRatio, STANDARD);
-    left.updateData(relativeX(0.0f), Y, relativeWH(tempSizeRatio), height, 993, tempRender, tempSizeRatio, STANDARD); 
-    right.updateData(relativeX(1.0f), Y, relativeWH(tempSizeRatio), height, 995, tempRender, tempSizeRatio, STANDARD);
+    background.updateData(X, Y, width, height, 996, tempRender, tempSizeRatio, GUISTATIC); 
+    top.updateData(X, relativeY(1.0f), width, relativeWH(tempSizeRatio), 994, tempRender, tempSizeRatio, GUISTATIC); 
+    bottom.updateData(X, relativeY(0.0f), width, relativeWH(tempSizeRatio), 992, tempRender, tempSizeRatio, GUISTATIC);
+    left.updateData(relativeX(0.0f), Y, relativeWH(tempSizeRatio), height, 993, tempRender, tempSizeRatio, GUISTATIC); 
+    right.updateData(relativeX(1.0f), Y, relativeWH(tempSizeRatio), height, 995, tempRender, tempSizeRatio, GUISTATIC);
 
     for(int i = 0; i < buttons.size(); i++){
         buttons[i].sizeRatio = sizeRatio;
-        buttons[i].background.updateData(relativeX(buttons[i].X), relativeY(buttons[i].Y), width * buttons[i].width, relativeWH(tempSizeRatio), buttons[i].texture, tempRender, tempSizeRatio * 0.375f, STANDARD);
-        buttons[i].left.updateData(relativeX(buttons[i].X - buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 998, tempRender, tempSizeRatio * 0.375f, STANDARD);
-        buttons[i].right.updateData(relativeX(buttons[i].X + buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 999, tempRender, tempSizeRatio * 0.375f, STANDARD);
+        buttons[i].background.updateData(relativeX(buttons[i].X), relativeY(buttons[i].Y), width * buttons[i].width, relativeWH(tempSizeRatio), buttons[i].texture, tempRender, tempSizeRatio * 0.375f, GUISTATIC);
+        buttons[i].left.updateData(relativeX(buttons[i].X - buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 998, tempRender, tempSizeRatio * 0.375f, GUISTATIC);
+        buttons[i].right.updateData(relativeX(buttons[i].X + buttons[i].width * 0.5f), relativeY(buttons[i].Y), relativeWH(tempSizeRatio), relativeWH(tempSizeRatio), 999, tempRender, tempSizeRatio * 0.375f, GUISTATIC);
     }
 
 }
@@ -378,8 +383,9 @@ void myGUI::draw(Shader &s){
             buttons[i].status = 2;
         }
 
-        if(render && buttons[i].text != "") RenderText(*textShader, buttons[i].text, relativeX(buttons[i].X - buttons[i].width * 0.5f) + relativeWH(textSizeRatio * 1.25f) * (startingWindow_width / window_width) * (window_height / startingWindow_height), relativeY(buttons[i].Y) - relativeWH(textSizeRatio * 1.5f), textSizeRatio * 1.2f * (startingWindow_height / window_height), buttons[i].color);
+        if(render && buttons[i].text != "") RenderText(*textShader, buttons[i].text, relativeX(buttons[i].X - buttons[i].width * 0.5f) * (window_height / window_width) + relativeWH(textSizeRatio * 1.5f), relativeY(buttons[i].Y) - relativeWH(textSizeRatio * 1.5f), textSizeRatio * 1.2f * (startingWindow_height / window_height), buttons[i].color);
     }
+    glBindVertexArray(Quad::VAO);
 }
     
 
@@ -471,9 +477,9 @@ void Entity::move(){
 
     
     if(V.x != 0.0f) V.x *= 1.0f - (friction.x * mass / abs(V.x)) * deltaTime;
-    if(abs(V.x) < 0.00001f) V.x = 0.0f;
+    if(abs(V.x) < 0.01f) V.x = 0.0f;
     if(V.y != 0.0f) V.y *= 1.0f - (friction.y * mass / abs(V.y)) * deltaTime;
-    if(abs(V.y) < 0.00001f) V.y = 0.0f;
+    if(abs(V.y) < 0.01f) V.y = 0.0f;
 }
 
 float Entity::pointTowards(float x, float y){

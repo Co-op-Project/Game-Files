@@ -32,7 +32,9 @@
 double pi = 3.141592653589793;
 float deltaTime = 0.0f, lastTime = 0.0f, change1 = 0.0f, change2 = 0.0f, change3 = 0.0f, window_width, window_height, startingWindow_width, startingWindow_height, zoom = 5.0f, worldX = 0.0f, worldY = 0.0f;
 glm::mat4 quadProjection = glm::mat4(1.0f);
+glm::mat4 quadProjectionRaw = glm::mat4(1.0f);
 glm::mat4 projectionText = glm::mat4(1.0f);
+glm::mat4 projectionTextRaw = glm::mat4(1.0f);
 float lastX = 800.0f / 2.0f;
 float lastY = 800.0f / 2.0f;
 
@@ -149,7 +151,7 @@ int main(){
 	Shader text1Shader("../resources/shaders/text.vert", "../resources/shaders/text.frag");
 	projectionText = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
 	text1Shader.use();
-	glUniformMatrix4fv(glGetUniformLocation(text1Shader.ID, "projectionText"), 1, GL_FALSE, glm::value_ptr(projectionText));
+	text1Shader.setMat4("projectionText", projectionTextRaw);
 
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
@@ -226,29 +228,33 @@ int main(){
 	glGenVertexArrays(1, &Quad::VAO);
     glGenBuffers(1, &Quad::VBO);
 
-	/*std::vector<myGUI> guis;
-	guis.emplace_back(myGUI(0.33f, 0.4f, 0.755f, 0.5f, true, 4.0f));
+	std::vector<myGUI> guis;
+	guis.emplace_back(myGUI(0.5f, 0.5f, 0.5f, 0.5f, true, 4.0f));
 	guis[0].textShader = &text1Shader;
-	guis[0].addButton(0.33f, 0.75f, 0.3f, "Can't get enough", glm::vec3(1.0f, 0.0f, 1.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](){
+	guis[0].addButton(0.33f, 0.75f, 0.3f, "ttttkkkttt", glm::vec3(1.0f, 0.0f, 1.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](){
 		std::cout << "noArgs0" << std::endl;
 	});
 
-	guis[0].addButton(0.66f, 0.75f, 0.3f, "Can't get enough", glm::vec3(0.0f, 1.0f, 1.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](int x){
+	guis[0].addButton(0.66f, 0.75f, 0.3f, "jojkkkkmmkm", glm::vec3(0.0f, 1.0f, 1.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](int x){
 		std::cout << "int arg: " << x << std::endl;
 	});
 
-	guis[0].addButton(0.33f, 0.5f, 0.3f, "Can't get enough", glm::vec3(1.0f, 1.0f, 0.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](myGUI* gui){
-		gui->buttons[4].text = "Boy u odindin done";
-	});*/
+	guis[0].addButton(0.33f, 0.5f, 0.3f, "dfhnnnbhcfvh", glm::vec3(1.0f, 1.0f, 0.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](myGUI* gui){
+		gui->buttons[3].text = "Boy u odindin done";
+	});
+
+	guis[0].addButton(0.7f, 0.5f, 0.4f, "empty", glm::vec3(1.0f, 0.0f, 0.0f), 997); guis[0].buttons[guis[0].buttons.size() - 1].setCallback([](){});
 
 	std::vector<Projectile> projectiles;
 
-	for(int i = 0; i < 1; i++){
-		projectiles.emplace_back(Projectile(-1.25f + i * 0.001f, -1.25f + i * 0.001f, 997, 4.0f, true, false));
+	for(int i = 0; i < 10; i++){
+		for(int j = 0; j < 10; j++){
+		projectiles.emplace_back(Projectile(-5.f + i * 0.2f, -5.f + j * 0.2f, 997, 4.0f, true, true));
 		//projectiles[i].friction = glm::vec2(0.01f + i * 0.0005f, 0.01f + i * 0.0005f);
 		//projectiles[i].scale = 1.0f + i * 0.001f;
-		projectiles[i].friction = glm::vec2(5.f, 5.f);
-		projectiles[i].As.push_back(glm::vec2(0.0f, 0.0f));
+		projectiles[i * 10 + j].friction = glm::vec2(5.f, 5.f);
+		projectiles[i * 10 + j].As.push_back(glm::vec2(0.0f, 0.0f));
+		}
 	}
 
 	std::vector<Solid> solids;
@@ -262,6 +268,9 @@ int main(){
 	solids[3].angle = pi/4.0;
 
 	quadProjection = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
+	quadProjectionRaw = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
+	projectionTextRaw = glm::ortho(0.0f, float(mode->width), 0.0f, float(mode->height));
+
 	quadShader.use();
 	quadShader.setInt("texID", 1);
 	quadShader.setMat4("projection", quadProjection);
@@ -273,12 +282,13 @@ int main(){
 		float currentTime = float(glfwGetTime());
     	deltaTime = currentTime - lastTime;
     	lastTime = currentTime;
+		deltaTime = std::min(deltaTime, 0.05f);
 
     	glfwPollEvents();
 		glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
-		for(auto& current : solids){
+		/*for(auto& current : solids){
 			if(projectiles[0].simpleColliding(projectiles[0], current)) glClearColor(1.0f, 0.0f, 0.1f, 1.0f);
-		}
+		}*/
 		
     	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -301,18 +311,28 @@ int main(){
 			current.update();
 			current.draw(quadShader);
 		}
-		
-		/*for(int i = 0; i < projectiles.size(); i++){
+
+		for(int i = 0; i < projectiles.size(); i++){
 			float tempAngle = projectiles[i].pointTowards(lastX, (window_height - lastY));
-			if(pressed(BUTTON_Q)) projectiles[i].V += projectiles[i].dirScalar(1.f, tempAngle);
+			if(held(BUTTON_Q)) projectiles[i].V += projectiles[i].dirScalar(0.05f, tempAngle);
+			projectiles[i].move();
 			projectiles[i].colliding(projectiles[i], solids[0]);
 			for(int j = 0; j < projectiles.size(); j++){
 				if(j != i) projectiles[i].colliding(projectiles[i], projectiles[j]);
 			}
-			projectiles[i].colliding(projectiles[i], solids[0]); // delete after testing to see if needed
+			for(int j = 0; j < solids.size(); j++){
+				if(j != i) projectiles[i].colliding(projectiles[i], solids[j]);
+			}
 			projectiles[i].update();
 			projectiles[i].draw(quadShader);
-		}*/
+		}
+
+		quadShader.setMat4("projection", quadProjectionRaw);
+
+		for(auto& current : guis){
+			current.updateGUI();
+			current.draw(quadShader);
+		}
 		
 		if(held(BUTTON_UP))    projectiles[0].As[0].y = ( 8.0f) * (abs(projectiles[0].V.y) < projectiles[0].maxSelfGivenV);
 		if(held(BUTTON_DOWN))  projectiles[0].As[0].y = (-8.0f) * (abs(projectiles[0].V.y) < projectiles[0].maxSelfGivenV);
@@ -321,16 +341,16 @@ int main(){
 		projectiles[0].As[0].y *= held(BUTTON_UP) || held(BUTTON_DOWN);	
 		projectiles[0].As[0].x *= held(BUTTON_LEFT) || held(BUTTON_RIGHT);     
 
-		for(auto& current : projectiles){
+		/*for(auto& current : projectiles){
 			float tempAngle = current.pointTowards(lastX, (window_height - lastY));
-			if(held(BUTTON_Q)) current.V += current.dirScalar(0.05f, tempAngle);
+			if(held(BUTTON_Q)) current.V += current.dirScalar(0.3f, tempAngle);
 			for(int j = 0; j < solids.size(); j++){
-				//current.simpleColliding(current, solids[j]);
+				current.colliding(current, solids[j]);
 			}
 			current.move();
 			current.update();
 			current.draw(quadShader);
-		}
+		}*/
 
 		if(held(BUTTON_W)) worldY += 1000.f * deltaTime * zoom;
 		if(held(BUTTON_S)) worldY -= 1000.f * deltaTime * zoom;
@@ -345,6 +365,9 @@ int main(){
 		ImGui::Text("FPS: = %i Zoom: = %f V: = %.3f %.3f A: = %.3f %.3f", debug.FPS, zoom, projectiles[0].V.x, projectiles[0].V.y, projectiles[0].As[0].x, projectiles[0].As[0].y);
 		ImGui::SliderFloat("elasticity1", &projectiles[0].elasticity, 0.0f, 1.0f, "%.3f", 0);
 		ImGui::SliderFloat("elasticity2", &projectiles[1].elasticity, 0.0f, 1.0f, "%.3f", 0);
+		ImGui::SliderFloat("X", &guis[0].X, 0.0f, 2.0f, "%.3f", 0);
+		ImGui::SliderFloat("Y", &guis[0].Y, 0.0f, 2.0f, "%.3f", 0);
+		ImGui::SliderFloat("width", &guis[0].width, 0.0f, 2.0f, "%.3f", 0);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -369,7 +392,7 @@ void RenderText(Shader& s, std::string text, float x, float y, float scale, glm:
 	y *= window_height;
 	scale *= window_height / startingWindow_height;
 	s.use();
-	s.setMat4("projectionText", projectionText);
+	s.setMat4("projectionText", projectionTextRaw);
 	s.setVec3("textColor", glm::vec3(color.x, color.y, color.z));
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(textVAO);
@@ -411,10 +434,13 @@ void RenderText(Shader& s, std::string text, float x, float y, float scale, glm:
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
+	if (width == 0 || height == 0) return;
 	window_width = width;
 	window_height = height;
 	quadProjection = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
-			projectionText = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
+	quadProjectionRaw = glm::ortho(0.0f, float(window_width), 0.0f, float(window_height));
+	projectionText = glm::ortho(float(window_width) * (zoom - 2.0f) * -0.5f, float(window_width) * zoom * 0.5f, float(window_height) * (zoom - 2.0f) * -0.5f, float(window_height) * zoom * 0.5f);
+	projectionTextRaw = glm::ortho(0.0f, float(window_width), 0.0f, float(window_height));
 	glViewport(0, 0, width, height);
 }
 
@@ -518,7 +544,7 @@ void window_focus_callback(GLFWwindow* window, int focused) {
     input.buttons[MOUSE_LEFT].is_down = leftButtonPressed;
     input.buttons[MOUSE_RIGHT].is_down = rightButtonPressed;
     if (focused) {
-        // Explicitly query current cursor position and update tracking
+		glfwMakeContextCurrent(window);
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
         lastX = static_cast<float>(xpos); 

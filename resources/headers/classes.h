@@ -57,7 +57,8 @@ private:
 
 enum quadType {
     STANDARD,
-    ENTITY
+    ENTITY,
+    GUISTATIC
 };
 
 class Quad {
